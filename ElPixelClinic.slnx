@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Services/">
+    <Project Path="src/Services/Office.Api/Office.Api.csproj" />
+    <Project Path="src/Services/Services.Api/Services.Api.csproj" />
+  </Folder>
+</Solution>
