@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Services.Api.Exceptions;
+namespace Office.Api.Exceptions;
 
 public class GlobalExceptionHandler : IExceptionHandler
 {
