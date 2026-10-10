@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Office.Api.Data;
 using Office.Api.Exceptions;
+using Office.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IOfficeService, OfficeService>();
 
 var app = builder.Build();
 
