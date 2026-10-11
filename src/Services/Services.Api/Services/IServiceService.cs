@@ -1,0 +1,12 @@
+﻿using Services.Api.DTOs.ServiceDtos;
+
+namespace Services.Api.Services;
+
+public interface IServiceService
+{
+    Task<IEnumerable<ServiceResponseDto>> GetAllAsync();
+    Task<ServiceResponseDto?> GetByIdAsync(Guid id);
+    Task<bool> UpdateAsync(Guid id, UpdateServiceDto dto);
+    Task<ServiceResponseDto> CreateAsync(CreateServiceDto dto);
+    Task<bool> DeleteAsync(Guid id);
+}

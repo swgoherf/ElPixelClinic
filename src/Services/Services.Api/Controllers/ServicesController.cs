@@ -1,9 +1,11 @@
+using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Services.Api.Data;
 using Services.Api.DTOs.ServiceDtos;
 using Services.Api.Models;
+using Services.Api.Services;
 
 namespace Services.Api.Controllers;
 
@@ -11,65 +13,41 @@ namespace Services.Api.Controllers;
 [ApiController]
 public class ServicesController : ControllerBase
 {
-    private readonly ServicesDbContext _context;
+    private readonly IServiceService _serviceService;
 
-    public ServicesController(ServicesDbContext context)
+    public ServicesController(IServiceService serviceService)
     {
-        _context = context;
+        _serviceService = serviceService;
     }
 
     // GET: api/Services
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ServiceResponseDto>>> GetServices()
     {
-        var services = await _context.Services.ToListAsync();
+        var services = await _serviceService.GetAllAsync();
 
-        return Ok(services.Select(o => new ServiceResponseDto(
-            o.Id,
-            o.Name,
-            o.Price,
-            o.IsActive,
-            o.SpecializationId
-        )));
+        return Ok(services);
     }
 
     // GET: api/Services/{id}
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceResponseDto>> GetService(Guid id)
     {
-        var service = await _context.Services.FindAsync(id);
+        var service = await _serviceService.GetByIdAsync(id);
 
-        if (service == null)
-        {
-            return NotFound();
-        }
-
-        return Ok(new ServiceResponseDto(
-            service.Id,
-            service.Name,
-            service.Price,
-            service.IsActive,
-            service.SpecializationId
-        ));
+        return Ok(service);
     }
 
     // PUT: api/Services/{id}
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateService(Guid id, UpdateServiceDto dto)
     {
-        var service = await _context.Services.FindAsync(id);
+        var updated = await _serviceService.UpdateAsync(id, dto);
 
-        if (service == null)
+        if (!updated)
         {
             return NotFound();
         }
-
-        service.Name = dto.Name;
-        service.Price = dto.Price;
-        service.IsActive = dto.IsActive;
-        service.SpecializationId = dto.SpecializationId;
-
-        await _context.SaveChangesAsync();
 
         return NoContent();
     }
@@ -78,30 +56,12 @@ public class ServicesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ServiceResponseDto>> CreateService(CreateServiceDto dto)
     {
-        var entity = new ServiceEntity
-        {
-            Name = dto.Name,
-            Price = dto.Price,
-            IsActive = dto.IsActive,
-            SpecializationId = dto.SpecializationId,
-        };
-
-        _context.Services.Add(entity);
-
-        await _context.SaveChangesAsync();
-
-        var response = new ServiceResponseDto(
-            entity.Id,
-            entity.Name,
-            entity.Price,
-            entity.IsActive,
-            entity.SpecializationId
-        );
+        var created = await _serviceService.CreateAsync(dto);
 
         return CreatedAtAction(
             nameof(GetService),
-            new { id = entity.Id },
-            response
+            new { id = created.Id },
+            created
         );
     }
 
@@ -109,16 +69,12 @@ public class ServicesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteService(Guid id)
     {
-        var service = await _context.Services.FindAsync(id);
+        var deleted = await _serviceService.DeleteAsync(id);
 
-        if (service == null)
+        if (!deleted)
         {
             return NotFound();
         }
-
-        _context.Services.Remove(service);
-
-        await _context.SaveChangesAsync();
 
         return NoContent();
     }

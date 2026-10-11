@@ -1,8 +1,10 @@
+using Azure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Services.Api.Data;
 using Services.Api.DTOs.SpecializationDtos;
 using Services.Api.Models;
+using Services.Api.Services;
 
 namespace Services.Api.Controllers;
 
@@ -10,56 +12,41 @@ namespace Services.Api.Controllers;
 [ApiController]
 public class SpecializationsController : ControllerBase
 {
-    private readonly ServicesDbContext _context;
+    private readonly ISpecializationService _specializationService;
 
-    public SpecializationsController(ServicesDbContext context)
+    public SpecializationsController(ISpecializationService specializationService)
     {
-        _context = context;
+        _specializationService = specializationService;
     }
 
     // GET: api/Specializations
     [HttpGet]
     public async Task<ActionResult<IEnumerable<SpecializationResponseDto>>> GetSpecializations()
     {
-        var specializations = await _context.Specializations.ToListAsync();
+        var specializations = await _specializationService.GetAllAsync();
 
-        return Ok(specializations.Select(s => new SpecializationResponseDto(
-            s.Id,
-            s.Name
-        )));
+        return Ok(specializations);
     }
 
     // GET: api/Specializations/{id}
     [HttpGet("{id}")]
     public async Task<ActionResult<SpecializationResponseDto>> GetSpecialization(Guid id)
     {
-        var specialization = await _context.Specializations.FindAsync(id);
+        var specialization = await _specializationService.GetByIdAsync(id);
 
-        if (specialization == null)
-        {
-            return NotFound();
-        }
-
-        return Ok(new SpecializationResponseDto(
-            specialization.Id,
-            specialization.Name
-        ));
+        return Ok(specialization);
     }
 
     // PUT: api/Specializations/{id}
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateSpecialization(Guid id, UpdateSpecializationDto dto)
     {
-        var specialization = await _context.Specializations.FindAsync(id);
+        var updated = await _specializationService.UpdateAsync(id, dto);
 
-        if (specialization == null)
+        if (!updated)
         {
             return NotFound();
         }
-
-        specialization.Name = dto.Name;
-
-        await _context.SaveChangesAsync();
 
         return NoContent();
     }
@@ -68,24 +55,12 @@ public class SpecializationsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<SpecializationResponseDto>> CreateSpecialization(CreateSpecializationDto dto)
     {
-        var entity = new SpecializationEntity
-        {
-            Name = dto.Name
-        };
-
-        _context.Specializations.Add(entity);
-
-        await _context.SaveChangesAsync();
-
-        var response = new SpecializationResponseDto(
-            entity.Id,
-            entity.Name
-        );
+        var created = await _specializationService.CreateAsync(dto);
 
         return CreatedAtAction(
             nameof(GetSpecialization),
-            new { id = entity.Id },
-            response
+            new { id = created.Id },
+            created
         );
     }
 
@@ -93,16 +68,12 @@ public class SpecializationsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteSpecialization(Guid id)
     {
-        var specialization = await _context.Specializations.FindAsync(id);
+        var deleted = await _specializationService.DeleteAsync(id);
 
-        if (specialization == null)
+        if (!deleted)
         {
             return NotFound();
         }
-
-        _context.Specializations.Remove(specialization);
-
-        await _context.SaveChangesAsync();
 
         return NoContent();
     }
