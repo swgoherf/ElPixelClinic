@@ -34,6 +34,11 @@ public class SpecializationsController : ControllerBase
     {
         var specialization = await _specializationService.GetByIdAsync(id);
 
+        if (specialization == null)
+        {
+            return NotFound();
+        }
+
         return Ok(specialization);
     }
 

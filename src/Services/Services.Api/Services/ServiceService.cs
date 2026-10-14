@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Services.Api.Data;
 using Services.Api.DTOs.ServiceDtos;
 using Services.Api.Models;
@@ -47,6 +47,14 @@ public class ServiceService : IServiceService
         var service = await _context.Services.FindAsync(id);
 
         if (service == null)
+        {
+            return false;
+        }
+
+        var specializationExists = await _context.Specializations
+            .AnyAsync(s => s.Id == dto.SpecializationId);
+
+        if (!specializationExists)
         {
             return false;
         }

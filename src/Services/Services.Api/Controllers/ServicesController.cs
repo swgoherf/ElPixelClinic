@@ -35,6 +35,11 @@ public class ServicesController : ControllerBase
     {
         var service = await _serviceService.GetByIdAsync(id);
 
+        if (service == null)
+        {
+            return NotFound();
+        }
+
         return Ok(service);
     }
 
