@@ -1,7 +1,16 @@
 <Solution>
   <Folder Name="/src/" />
-  <Folder Name="/src/Services/">
-    <Project Path="src/Services/Office.Api/Office.Api.csproj" />
-    <Project Path="src/Services/Services.Api/Services.Api.csproj" />
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Office/">
+    <Project Path="src/Services/Office/Office.Domain/Office.Domain.csproj" />
+    <Project Path="src/Services/Office/Office.Application/Office.Application.csproj" />
+    <Project Path="src/Services/Office/Office.Infrastructure/Office.Infrastructure.csproj" />
+    <Project Path="src/Services/Office/Office.Api/Office.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Services/">
+    <Project Path="src/Services/Services/Services.Domain/Services.Domain.csproj" />
+    <Project Path="src/Services/Services/Services.Application/Services.Application.csproj" />
+    <Project Path="src/Services/Services/Services.Infrastructure/Services.Infrastructure.csproj" />
+    <Project Path="src/Services/Services/Services.Api/Services.Api.csproj" />
   </Folder>
 </Solution>
