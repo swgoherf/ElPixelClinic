@@ -15,7 +15,6 @@ public class OfficesController : ControllerBase
         _officeService = officeService;
     }
 
-    // GET: api/Offices
     [HttpGet]
     public async Task<ActionResult<IEnumerable<OfficeResponseDto>>> GetOffices()
     {
@@ -24,13 +23,12 @@ public class OfficesController : ControllerBase
         return Ok(offices);
     }
 
-    // GET: api/Offices/{id}
     [HttpGet("{id}")]
     public async Task<ActionResult<OfficeResponseDto>> GetOffice(Guid id)
     {
         var office = await _officeService.GetByIdAsync(id);
 
-        if (office == null)
+        if (office is null)
         {
             return NotFound();
         }
@@ -38,13 +36,12 @@ public class OfficesController : ControllerBase
         return Ok(office);
     }
 
-    // PUT: api/Offices/{id}
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateOffice(Guid id, UpdateOfficeDto dto)
     {
-        var updated = await _officeService.UpdateAsync(id, dto);
+        var updatedOffice = await _officeService.UpdateAsync(id, dto);
 
-        if (!updated)
+        if (!updatedOffice)
         {
             return NotFound();
         }
@@ -52,26 +49,24 @@ public class OfficesController : ControllerBase
         return NoContent();
     }
 
-    // POST: api/Offices
     [HttpPost]
     public async Task<ActionResult<OfficeResponseDto>> CreateOffice(CreateOfficeDto dto)
     {
-        var created = await _officeService.CreateAsync(dto);
+        var createdOffice = await _officeService.CreateAsync(dto);
 
         return CreatedAtAction(
             nameof(GetOffice),
-            new { id = created.Id },
-            created
+            new { id = createdOffice.Id },
+            createdOffice
         );
     }
 
-    // DELETE: api/Offices/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteOffice(Guid id)
     {
-        var deleted = await _officeService.DeleteAsync(id);
+        var deletedOffice = await _officeService.DeleteAsync(id);
 
-        if (!deleted)
+        if (!deletedOffice)
         {
             return NotFound();
         }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Services.Application.Common.Interfaces;
 using Services.Infrastructure.Data;
+using Services.Infrastructure.Repositories;
 
 namespace Services.Infrastructure;
 
@@ -14,6 +15,8 @@ public static class DependencyInjection
             options.UseSqlServer(configuration.GetConnectionString("SqlServerConnection")));
 
         services.AddScoped<IServicesDbContext>(provider => provider.GetRequiredService<ServicesDbContext>());
+        services.AddScoped<IMedicalServiceRepository, MedicalServiceRepository>();
+        services.AddScoped<ISpecializationRepository, SpecializationRepository>();
 
         return services;
     }

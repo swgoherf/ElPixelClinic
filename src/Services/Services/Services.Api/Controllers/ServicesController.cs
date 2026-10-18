@@ -8,14 +8,13 @@ namespace Services.Api.Controllers;
 [ApiController]
 public class ServicesController : ControllerBase
 {
-    private readonly IServiceService _serviceService;
+    private readonly IMedicalServiceService _serviceService;
 
-    public ServicesController(IServiceService serviceService)
+    public ServicesController(IMedicalServiceService serviceService)
     {
         _serviceService = serviceService;
     }
 
-    // GET: api/Services
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ServiceResponseDto>>> GetServices()
     {
@@ -24,13 +23,12 @@ public class ServicesController : ControllerBase
         return Ok(services);
     }
 
-    // GET: api/Services/{id}
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceResponseDto>> GetService(Guid id)
     {
         var service = await _serviceService.GetByIdAsync(id);
 
-        if (service == null)
+        if (service is null)
         {
             return NotFound();
         }
@@ -38,13 +36,12 @@ public class ServicesController : ControllerBase
         return Ok(service);
     }
 
-    // PUT: api/Services/{id}
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateService(Guid id, UpdateServiceDto dto)
     {
-        var updated = await _serviceService.UpdateAsync(id, dto);
+        var updatedService = await _serviceService.UpdateAsync(id, dto);
 
-        if (!updated)
+        if (!updatedService)
         {
             return NotFound();
         }
@@ -52,26 +49,24 @@ public class ServicesController : ControllerBase
         return NoContent();
     }
 
-    // POST: api/Services
     [HttpPost]
     public async Task<ActionResult<ServiceResponseDto>> CreateService(CreateServiceDto dto)
     {
-        var created = await _serviceService.CreateAsync(dto);
+        var createdService = await _serviceService.CreateAsync(dto);
 
         return CreatedAtAction(
             nameof(GetService),
-            new { id = created.Id },
-            created
+            new { id = createdService.Id },
+            createdService
         );
     }
 
-    // DELETE: api/Services/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteService(Guid id)
     {
-        var deleted = await _serviceService.DeleteAsync(id);
+        var deletedService = await _serviceService.DeleteAsync(id);
 
-        if (!deleted)
+        if (!deletedService)
         {
             return NotFound();
         }

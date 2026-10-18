@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Services.Application.Common.Interfaces;
 using Services.Application.DTOs.SpecializationDtos;
 using Services.Domain.Entities;
@@ -7,16 +6,16 @@ namespace Services.Application.Services;
 
 public class SpecializationService : ISpecializationService
 {
-    private readonly IServicesDbContext _context;
+    private readonly ISpecializationRepository _specializationRepository;
 
-    public SpecializationService(IServicesDbContext context)
+    public SpecializationService(ISpecializationRepository specializationRepository)
     {
-        _context = context;
+        _specializationRepository = specializationRepository;
     }
 
     public async Task<IEnumerable<SpecializationResponseDto>> GetAllAsync()
     {
-        var specializations = await _context.Specializations.ToListAsync();
+        var specializations = await _specializationRepository.GetAllAsync();
 
         return specializations.Select(s => new SpecializationResponseDto(
             s.Id,
@@ -26,9 +25,9 @@ public class SpecializationService : ISpecializationService
 
     public async Task<SpecializationResponseDto?> GetByIdAsync(Guid id)
     {
-        var specialization = await _context.Specializations.FindAsync(id);
+        var specialization = await _specializationRepository.GetByIdAsync(id);
 
-        if (specialization == null)
+        if (specialization is null)
         {
             return null;
         }
@@ -41,16 +40,16 @@ public class SpecializationService : ISpecializationService
 
     public async Task<bool> UpdateAsync(Guid id, UpdateSpecializationDto dto)
     {
-        var specialization = await _context.Specializations.FindAsync(id);
+        var specialization = await _specializationRepository.GetByIdAsync(id);
 
-        if (specialization == null)
+        if (specialization is null)
         {
             return false;
         }
 
         specialization.Name = dto.Name;
 
-        await _context.SaveChangesAsync();
+        await _specializationRepository.UpdateAsync(specialization);
 
         return true;
     }
@@ -62,9 +61,7 @@ public class SpecializationService : ISpecializationService
             Name = dto.Name
         };
 
-        _context.Specializations.Add(entity);
-
-        await _context.SaveChangesAsync();
+        await _specializationRepository.AddAsync(entity);
 
         var response = new SpecializationResponseDto(
             entity.Id,
@@ -76,16 +73,14 @@ public class SpecializationService : ISpecializationService
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var specialization = await _context.Specializations.FindAsync(id);
+        var specialization = await _specializationRepository.GetByIdAsync(id);
 
-        if (specialization == null)
+        if (specialization is null)
         {
             return false;
         }
 
-        _context.Specializations.Remove(specialization);
-
-        await _context.SaveChangesAsync();
+        await _specializationRepository.DeleteAsync(specialization);
 
         return true;
     }

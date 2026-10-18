@@ -1,37 +1,40 @@
-using Microsoft.EntityFrameworkCore;
 using Services.Application.Common.Interfaces;
 using Services.Application.DTOs.ServiceDtos;
 using Services.Domain.Entities;
 
 namespace Services.Application.Services;
 
-public class ServiceService : IServiceService
+public class MedicalServiceService : IMedicalServiceService
 {
-    private readonly IServicesDbContext _context;
+    private readonly IMedicalServiceRepository _serviceRepository;
+    private readonly ISpecializationRepository _specializationRepository;
 
-    public ServiceService(IServicesDbContext context)
+    public MedicalServiceService(
+        IMedicalServiceRepository serviceRepository,
+        ISpecializationRepository specializationRepository)
     {
-        _context = context;
+        _serviceRepository = serviceRepository;
+        _specializationRepository = specializationRepository;
     }
 
     public async Task<IEnumerable<ServiceResponseDto>> GetAllAsync()
     {
-        var services = await _context.Services.ToListAsync();
+        var services = await _serviceRepository.GetAllAsync();
 
-        return services.Select(o => new ServiceResponseDto(
-            o.Id,
-            o.Name,
-            o.Price,
-            o.IsActive,
-            o.SpecializationId
+        return services.Select(s => new ServiceResponseDto(
+            s.Id,
+            s.Name,
+            s.Price,
+            s.IsActive,
+            s.SpecializationId
         ));
     }
 
     public async Task<ServiceResponseDto?> GetByIdAsync(Guid id)
     {
-        var service = await _context.Services.FindAsync(id);
+        var service = await _serviceRepository.GetByIdAsync(id);
 
-        if (service == null)
+        if (service is null)
         {
             return null;
         }
@@ -47,19 +50,18 @@ public class ServiceService : IServiceService
 
     public async Task<bool> UpdateAsync(Guid id, UpdateServiceDto dto)
     {
-        var service = await _context.Services.FindAsync(id);
+        var service = await _serviceRepository.GetByIdAsync(id);
 
-        if (service == null)
+        if (service is null)
         {
             return false;
         }
 
-        var specializationExists = await _context.Specializations
-            .AnyAsync(s => s.Id == dto.SpecializationId);
+        var specializationExists = await _specializationRepository.ExistsAsync(dto.SpecializationId);
 
         if (!specializationExists)
         {
-            return false;
+            throw new ArgumentException($"Specialization with ID '{dto.SpecializationId}' does not exist.");
         }
 
         service.Name = dto.Name;
@@ -67,13 +69,20 @@ public class ServiceService : IServiceService
         service.IsActive = dto.IsActive;
         service.SpecializationId = dto.SpecializationId;
 
-        await _context.SaveChangesAsync();
+        await _serviceRepository.UpdateAsync(service);
 
         return true;
     }
 
     public async Task<ServiceResponseDto> CreateAsync(CreateServiceDto dto)
     {
+        var specializationExists = await _specializationRepository.ExistsAsync(dto.SpecializationId);
+
+        if (!specializationExists)
+        {
+            throw new ArgumentException($"Specialization with ID '{dto.SpecializationId}' does not exist.");
+        }
+
         var entity = new ServiceEntity
         {
             Name = dto.Name,
@@ -82,9 +91,7 @@ public class ServiceService : IServiceService
             SpecializationId = dto.SpecializationId,
         };
 
-        _context.Services.Add(entity);
-
-        await _context.SaveChangesAsync();
+        await _serviceRepository.AddAsync(entity);
 
         var response = new ServiceResponseDto(
             entity.Id,
@@ -99,16 +106,14 @@ public class ServiceService : IServiceService
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var service = await _context.Services.FindAsync(id);
+        var service = await _serviceRepository.GetByIdAsync(id);
 
-        if (service == null)
+        if (service is null)
         {
             return false;
         }
 
-        _context.Services.Remove(service);
-
-        await _context.SaveChangesAsync();
+        await _serviceRepository.DeleteAsync(service);
 
         return true;
     }

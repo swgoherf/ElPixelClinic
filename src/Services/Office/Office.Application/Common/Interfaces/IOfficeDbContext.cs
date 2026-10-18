@@ -6,5 +6,6 @@ namespace Office.Application.Common.Interfaces;
 public interface IOfficeDbContext
 {
     DbSet<OfficeEntity> Offices { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

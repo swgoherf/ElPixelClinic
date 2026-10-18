@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Office.Application.Common.Interfaces;
 using Office.Application.DTOs;
 using Office.Domain.Entities;
@@ -7,16 +6,16 @@ namespace Office.Application.Services;
 
 public class OfficeService : IOfficeService
 {
-    private readonly IOfficeDbContext _context;
+    private readonly IOfficeRepository _officeRepository;
 
-    public OfficeService(IOfficeDbContext context)
+    public OfficeService(IOfficeRepository officeRepository)
     {
-        _context = context;
+        _officeRepository = officeRepository;
     }
 
     public async Task<IEnumerable<OfficeResponseDto>> GetAllAsync()
     {
-        var offices = await _context.Offices.ToListAsync();
+        var offices = await _officeRepository.GetAllAsync();
 
         return offices.Select(o => new OfficeResponseDto(
             o.Id,
@@ -28,9 +27,9 @@ public class OfficeService : IOfficeService
 
     public async Task<OfficeResponseDto?> GetByIdAsync(Guid id)
     {
-        var office = await _context.Offices.FindAsync(id);
+        var office = await _officeRepository.GetByIdAsync(id);
 
-        if (office == null)
+        if (office is null)
         {
             return null;
         }
@@ -45,9 +44,9 @@ public class OfficeService : IOfficeService
 
     public async Task<bool> UpdateAsync(Guid id, UpdateOfficeDto dto)
     {
-        var office = await _context.Offices.FindAsync(id);
+        var office = await _officeRepository.GetByIdAsync(id);
 
-        if (office == null)
+        if (office is null)
         {
             return false;
         }
@@ -56,7 +55,7 @@ public class OfficeService : IOfficeService
         office.RegistryPhoneNumber = dto.RegistryPhoneNumber;
         office.IsActive = dto.IsActive;
 
-        await _context.SaveChangesAsync();
+        await _officeRepository.UpdateAsync(office);
 
         return true;
     }
@@ -70,9 +69,7 @@ public class OfficeService : IOfficeService
             IsActive = dto.IsActive
         };
 
-        _context.Offices.Add(entity);
-
-        await _context.SaveChangesAsync();
+        await _officeRepository.AddAsync(entity);
 
         var response = new OfficeResponseDto(
             entity.Id,
@@ -86,16 +83,14 @@ public class OfficeService : IOfficeService
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var office = await _context.Offices.FindAsync(id);
+        var office = await _officeRepository.GetByIdAsync(id);
 
-        if (office == null)
+        if (office is null)
         {
             return false;
         }
 
-        _context.Offices.Remove(office);
-
-        await _context.SaveChangesAsync();
+        await _officeRepository.DeleteAsync(office);
 
         return true;
     }

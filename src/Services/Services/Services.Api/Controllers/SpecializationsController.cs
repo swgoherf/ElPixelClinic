@@ -15,7 +15,6 @@ public class SpecializationsController : ControllerBase
         _specializationService = specializationService;
     }
 
-    // GET: api/Specializations
     [HttpGet]
     public async Task<ActionResult<IEnumerable<SpecializationResponseDto>>> GetSpecializations()
     {
@@ -24,13 +23,12 @@ public class SpecializationsController : ControllerBase
         return Ok(specializations);
     }
 
-    // GET: api/Specializations/{id}
     [HttpGet("{id}")]
     public async Task<ActionResult<SpecializationResponseDto>> GetSpecialization(Guid id)
     {
         var specialization = await _specializationService.GetByIdAsync(id);
 
-        if (specialization == null)
+        if (specialization is null)
         {
             return NotFound();
         }
@@ -38,13 +36,12 @@ public class SpecializationsController : ControllerBase
         return Ok(specialization);
     }
 
-    // PUT: api/Specializations/{id}
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateSpecialization(Guid id, UpdateSpecializationDto dto)
     {
-        var updated = await _specializationService.UpdateAsync(id, dto);
+        var updatedSpecialization = await _specializationService.UpdateAsync(id, dto);
 
-        if (!updated)
+        if (!updatedSpecialization)
         {
             return NotFound();
         }
@@ -52,26 +49,24 @@ public class SpecializationsController : ControllerBase
         return NoContent();
     }
 
-    // POST: api/Specializations
     [HttpPost]
     public async Task<ActionResult<SpecializationResponseDto>> CreateSpecialization(CreateSpecializationDto dto)
     {
-        var created = await _specializationService.CreateAsync(dto);
+        var createdSpecialization = await _specializationService.CreateAsync(dto);
 
         return CreatedAtAction(
             nameof(GetSpecialization),
-            new { id = created.Id },
-            created
+            new { id = createdSpecialization.Id },
+            createdSpecialization
         );
     }
 
-    // DELETE: api/Specializations/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteSpecialization(Guid id)
     {
-        var deleted = await _specializationService.DeleteAsync(id);
+        var deletedSpecialization = await _specializationService.DeleteAsync(id);
 
-        if (!deleted)
+        if (!deletedSpecialization)
         {
             return NotFound();
         }

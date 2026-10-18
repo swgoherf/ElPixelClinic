@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Office.Application.Common.Interfaces;
 using Office.Infrastructure.Data;
+using Office.Infrastructure.Repositories;
 
 namespace Office.Infrastructure;
 
@@ -14,6 +15,7 @@ public static class DependencyInjection
             options.UseSqlServer(configuration.GetConnectionString("SqlServerConnection")));
 
         services.AddScoped<IOfficeDbContext>(provider => provider.GetRequiredService<OfficeDbContext>());
+        services.AddScoped<IOfficeRepository, OfficeRepository>();
 
         return services;
     }
