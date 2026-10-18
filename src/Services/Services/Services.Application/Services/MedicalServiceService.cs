@@ -1,5 +1,6 @@
 using Services.Application.Common.Interfaces;
 using Services.Application.DTOs.ServiceDtos;
+using Services.Application.Mappings;
 using Services.Domain.Entities;
 
 namespace Services.Application.Services;
@@ -21,31 +22,14 @@ public class MedicalServiceService : IMedicalServiceService
     {
         var services = await _serviceRepository.GetAllAsync();
 
-        return services.Select(s => new ServiceResponseDto(
-            s.Id,
-            s.Name,
-            s.Price,
-            s.IsActive,
-            s.SpecializationId
-        ));
+        return services.Select(s => s.ToResponseDto());
     }
 
     public async Task<ServiceResponseDto?> GetByIdAsync(Guid id)
     {
         var service = await _serviceRepository.GetByIdAsync(id);
 
-        if (service is null)
-        {
-            return null;
-        }
-
-        return new ServiceResponseDto(
-            service.Id,
-            service.Name,
-            service.Price,
-            service.IsActive,
-            service.SpecializationId
-        );
+        return service?.ToResponseDto();
     }
 
     public async Task<bool> UpdateAsync(Guid id, UpdateServiceDto dto)
@@ -93,15 +77,7 @@ public class MedicalServiceService : IMedicalServiceService
 
         await _serviceRepository.AddAsync(entity);
 
-        var response = new ServiceResponseDto(
-            entity.Id,
-            entity.Name,
-            entity.Price,
-            entity.IsActive,
-            entity.SpecializationId
-        );
-
-        return response;
+        return entity.ToResponseDto();
     }
 
     public async Task<bool> DeleteAsync(Guid id)

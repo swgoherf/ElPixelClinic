@@ -1,5 +1,6 @@
 using Office.Application.Common.Interfaces;
 using Office.Application.DTOs;
+using Office.Application.Mappings;
 using Office.Domain.Entities;
 
 namespace Office.Application.Services;
@@ -17,29 +18,14 @@ public class OfficeService : IOfficeService
     {
         var offices = await _officeRepository.GetAllAsync();
 
-        return offices.Select(o => new OfficeResponseDto(
-            o.Id,
-            o.Address,
-            o.RegistryPhoneNumber,
-            o.IsActive
-        ));
+        return offices.Select(o => o.ToResponseDto());
     }
 
     public async Task<OfficeResponseDto?> GetByIdAsync(Guid id)
     {
         var office = await _officeRepository.GetByIdAsync(id);
 
-        if (office is null)
-        {
-            return null;
-        }
-
-        return new OfficeResponseDto(
-            office.Id,
-            office.Address,
-            office.RegistryPhoneNumber,
-            office.IsActive
-        );
+        return office?.ToResponseDto();
     }
 
     public async Task<bool> UpdateAsync(Guid id, UpdateOfficeDto dto)
@@ -71,14 +57,7 @@ public class OfficeService : IOfficeService
 
         await _officeRepository.AddAsync(entity);
 
-        var response = new OfficeResponseDto(
-            entity.Id,
-            entity.Address,
-            entity.RegistryPhoneNumber,
-            entity.IsActive
-        );
-
-        return response;
+        return entity.ToResponseDto();
     }
 
     public async Task<bool> DeleteAsync(Guid id)

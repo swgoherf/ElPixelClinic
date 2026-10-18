@@ -1,5 +1,6 @@
 using Services.Application.Common.Interfaces;
 using Services.Application.DTOs.SpecializationDtos;
+using Services.Application.Mappings;
 using Services.Domain.Entities;
 
 namespace Services.Application.Services;
@@ -17,25 +18,14 @@ public class SpecializationService : ISpecializationService
     {
         var specializations = await _specializationRepository.GetAllAsync();
 
-        return specializations.Select(s => new SpecializationResponseDto(
-            s.Id,
-            s.Name
-        ));
+        return specializations.Select(s => s.ToResponseDto());
     }
 
     public async Task<SpecializationResponseDto?> GetByIdAsync(Guid id)
     {
         var specialization = await _specializationRepository.GetByIdAsync(id);
 
-        if (specialization is null)
-        {
-            return null;
-        }
-
-        return new SpecializationResponseDto(
-            specialization.Id,
-            specialization.Name
-        );
+        return specialization?.ToResponseDto();
     }
 
     public async Task<bool> UpdateAsync(Guid id, UpdateSpecializationDto dto)
@@ -63,12 +53,7 @@ public class SpecializationService : ISpecializationService
 
         await _specializationRepository.AddAsync(entity);
 
-        var response = new SpecializationResponseDto(
-            entity.Id,
-            entity.Name
-        );
-
-        return response;
+        return entity.ToResponseDto();
     }
 
     public async Task<bool> DeleteAsync(Guid id)
