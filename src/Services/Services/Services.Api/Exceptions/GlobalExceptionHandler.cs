@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Services.Application.Common.Exceptions;
 
 namespace Services.Api.Exceptions;
 
@@ -16,20 +17,18 @@ public class GlobalExceptionHandler : IExceptionHandler
     {
         _logger.LogError(exception, "Unhandled exception occurred. TraceId: {TraceId}", httpContext.TraceIdentifier);
 
-        var (statusCode, title) = exception switch
+        var (statusCode, title, detail) = exception switch
         {
-            ArgumentException => (StatusCodes.Status400BadRequest, "Bad Request"),
-            KeyNotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
-            InvalidOperationException => (StatusCodes.Status409Conflict, "Conflict"),
-            UnauthorizedAccessException => (StatusCodes.Status401Unauthorized,"Unauthorized"), 
-            _ => (StatusCodes.Status500InternalServerError, "Internal Server Error")
+            NotFoundException notFound => (StatusCodes.Status404NotFound, "Not Found", notFound.Message),
+            ValidationException validation => (StatusCodes.Status400BadRequest, "Bad Request", validation.Message),
+            _ => (StatusCodes.Status500InternalServerError, "Internal Server Error", "An unexpected error occurred. Please try again later.")
         };
 
         var problem = new ProblemDetails
         {
             Status = statusCode,
             Title = title,
-            Detail = exception.Message,
+            Detail = detail,
             Instance = httpContext.Request.Path
         };
 

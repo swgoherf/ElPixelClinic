@@ -28,23 +28,13 @@ public class SpecializationsController : ControllerBase
     {
         var specialization = await _specializationService.GetByIdAsync(id);
 
-        if (specialization is null)
-        {
-            return NotFound();
-        }
-
         return Ok(specialization);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateSpecialization(Guid id, UpdateSpecializationDto dto)
     {
-        var updatedSpecialization = await _specializationService.UpdateAsync(id, dto);
-
-        if (!updatedSpecialization)
-        {
-            return NotFound();
-        }
+        await _specializationService.UpdateAsync(id, dto);
 
         return NoContent();
     }
@@ -64,12 +54,7 @@ public class SpecializationsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteSpecialization(Guid id)
     {
-        var deletedSpecialization = await _specializationService.DeleteAsync(id);
-
-        if (!deletedSpecialization)
-        {
-            return NotFound();
-        }
+        await _specializationService.DeleteAsync(id);
 
         return NoContent();
     }

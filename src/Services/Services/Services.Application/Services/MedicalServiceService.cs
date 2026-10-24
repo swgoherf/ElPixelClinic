@@ -1,3 +1,4 @@
+using Services.Application.Common.Exceptions;
 using Services.Application.Common.Interfaces;
 using Services.Application.DTOs.MedicalServiceDtos;
 using Services.Application.Mappings;
@@ -25,28 +26,28 @@ public class MedicalServiceService : IMedicalServiceService
         return services.Select(s => s.ToResponseDto());
     }
 
-    public async Task<MedicalServiceResponseDto?> GetByIdAsync(Guid id)
-    {
-        var service = await _serviceRepository.GetByIdAsync(id);
-
-        return service?.ToResponseDto();
-    }
-
-    public async Task<bool> UpdateAsync(Guid id, UpdateMedicalServiceDto dto)
+    public async Task<MedicalServiceResponseDto> GetByIdAsync(Guid id)
     {
         var service = await _serviceRepository.GetByIdAsync(id);
 
         if (service is null)
         {
-            return false;
+            throw new NotFoundException($"Medical service with ID '{id}' was not found.");
         }
 
-        var specializationExists = await _specializationRepository.ExistsAsync(dto.SpecializationId);
+        return service.ToResponseDto();
+    }
 
-        if (!specializationExists)
+    public async Task<MedicalServiceResponseDto> UpdateAsync(Guid id, UpdateMedicalServiceDto dto)
+    {
+        var service = await _serviceRepository.GetByIdAsync(id);
+
+        if (service is null)
         {
-            throw new ArgumentException($"Specialization with ID '{dto.SpecializationId}' does not exist.");
+            throw new NotFoundException($"Medical service with ID '{id}' was not found.");
         }
+
+        await EnsureSpecializationExistsAsync(dto.SpecializationId);
 
         service.Name = dto.Name;
         service.Price = dto.Price;
@@ -55,17 +56,12 @@ public class MedicalServiceService : IMedicalServiceService
 
         await _serviceRepository.UpdateAsync(service);
 
-        return true;
+        return service.ToResponseDto();
     }
 
     public async Task<MedicalServiceResponseDto> CreateAsync(CreateMedicalServiceDto dto)
     {
-        var specializationExists = await _specializationRepository.ExistsAsync(dto.SpecializationId);
-
-        if (!specializationExists)
-        {
-            throw new ArgumentException($"Specialization with ID '{dto.SpecializationId}' does not exist.");
-        }
+        await EnsureSpecializationExistsAsync(dto.SpecializationId);
 
         var entity = new MedicalServiceEntity
         {
@@ -80,17 +76,25 @@ public class MedicalServiceService : IMedicalServiceService
         return entity.ToResponseDto();
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
         var service = await _serviceRepository.GetByIdAsync(id);
 
         if (service is null)
         {
-            return false;
+            throw new NotFoundException($"Medical service with ID '{id}' was not found.");
         }
 
         await _serviceRepository.DeleteAsync(service);
+    }
 
-        return true;
+    private async Task EnsureSpecializationExistsAsync(Guid specializationId)
+    {
+        var exists = await _specializationRepository.ExistsAsync(specializationId);
+
+        if (!exists)
+        {
+            throw new ValidationException($"Specialization with ID '{specializationId}' does not exist.");
+        }
     }
 }

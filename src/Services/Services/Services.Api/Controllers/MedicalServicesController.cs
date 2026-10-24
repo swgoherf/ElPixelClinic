@@ -28,23 +28,13 @@ public class MedicalServicesController : ControllerBase
     {
         var service = await _medicalServiceService.GetByIdAsync(id);
 
-        if (service is null)
-        {
-            return NotFound();
-        }
-
         return Ok(service);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateService(Guid id, UpdateMedicalServiceDto dto)
     {
-        var updatedService = await _medicalServiceService.UpdateAsync(id, dto);
-
-        if (!updatedService)
-        {
-            return NotFound();
-        }
+        await _medicalServiceService.UpdateAsync(id, dto);
 
         return NoContent();
     }
@@ -64,12 +54,7 @@ public class MedicalServicesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteService(Guid id)
     {
-        var deletedService = await _medicalServiceService.DeleteAsync(id);
-
-        if (!deletedService)
-        {
-            return NotFound();
-        }
+        await _medicalServiceService.DeleteAsync(id);
 
         return NoContent();
     }

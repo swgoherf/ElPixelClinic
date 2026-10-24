@@ -28,23 +28,13 @@ public class OfficesController : ControllerBase
     {
         var office = await _officeService.GetByIdAsync(id);
 
-        if (office is null)
-        {
-            return NotFound();
-        }
-
         return Ok(office);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateOffice(Guid id, UpdateOfficeDto dto)
     {
-        var updatedOffice = await _officeService.UpdateAsync(id, dto);
-
-        if (!updatedOffice)
-        {
-            return NotFound();
-        }
+        await _officeService.UpdateAsync(id, dto);
 
         return NoContent();
     }
@@ -64,12 +54,7 @@ public class OfficesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteOffice(Guid id)
     {
-        var deletedOffice = await _officeService.DeleteAsync(id);
-
-        if (!deletedOffice)
-        {
-            return NotFound();
-        }
+        await _officeService.DeleteAsync(id);
 
         return NoContent();
     }

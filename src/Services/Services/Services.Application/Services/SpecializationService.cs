@@ -1,3 +1,4 @@
+using Services.Application.Common.Exceptions;
 using Services.Application.Common.Interfaces;
 using Services.Application.DTOs.SpecializationDtos;
 using Services.Application.Mappings;
@@ -21,27 +22,32 @@ public class SpecializationService : ISpecializationService
         return specializations.Select(s => s.ToResponseDto());
     }
 
-    public async Task<SpecializationResponseDto?> GetByIdAsync(Guid id)
-    {
-        var specialization = await _specializationRepository.GetByIdAsync(id);
-
-        return specialization?.ToResponseDto();
-    }
-
-    public async Task<bool> UpdateAsync(Guid id, UpdateSpecializationDto dto)
+    public async Task<SpecializationResponseDto> GetByIdAsync(Guid id)
     {
         var specialization = await _specializationRepository.GetByIdAsync(id);
 
         if (specialization is null)
         {
-            return false;
+            throw new NotFoundException($"Specialization with ID '{id}' was not found.");
+        }
+
+        return specialization.ToResponseDto();
+    }
+
+    public async Task<SpecializationResponseDto> UpdateAsync(Guid id, UpdateSpecializationDto dto)
+    {
+        var specialization = await _specializationRepository.GetByIdAsync(id);
+
+        if (specialization is null)
+        {
+            throw new NotFoundException($"Specialization with ID '{id}' was not found.");
         }
 
         specialization.Name = dto.Name;
 
         await _specializationRepository.UpdateAsync(specialization);
 
-        return true;
+        return specialization.ToResponseDto();
     }
 
     public async Task<SpecializationResponseDto> CreateAsync(CreateSpecializationDto dto)
@@ -56,17 +62,15 @@ public class SpecializationService : ISpecializationService
         return entity.ToResponseDto();
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
         var specialization = await _specializationRepository.GetByIdAsync(id);
 
         if (specialization is null)
         {
-            return false;
+            throw new NotFoundException($"Specialization with ID '{id}' was not found.");
         }
 
         await _specializationRepository.DeleteAsync(specialization);
-
-        return true;
     }
 }

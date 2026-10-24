@@ -1,3 +1,4 @@
+using Office.Application.Common.Exceptions;
 using Office.Application.Common.Interfaces;
 using Office.Application.DTOs;
 using Office.Application.Mappings;
@@ -21,20 +22,25 @@ public class OfficeService : IOfficeService
         return offices.Select(o => o.ToResponseDto());
     }
 
-    public async Task<OfficeResponseDto?> GetByIdAsync(Guid id)
-    {
-        var office = await _officeRepository.GetByIdAsync(id);
-
-        return office?.ToResponseDto();
-    }
-
-    public async Task<bool> UpdateAsync(Guid id, UpdateOfficeDto dto)
+    public async Task<OfficeResponseDto> GetByIdAsync(Guid id)
     {
         var office = await _officeRepository.GetByIdAsync(id);
 
         if (office is null)
         {
-            return false;
+            throw new NotFoundException($"Office with ID '{id}' was not found.");
+        }
+
+        return office.ToResponseDto();
+    }
+
+    public async Task<OfficeResponseDto> UpdateAsync(Guid id, UpdateOfficeDto dto)
+    {
+        var office = await _officeRepository.GetByIdAsync(id);
+
+        if (office is null)
+        {
+            throw new NotFoundException($"Office with ID '{id}' was not found.");
         }
 
         office.Address = dto.Address;
@@ -43,7 +49,7 @@ public class OfficeService : IOfficeService
 
         await _officeRepository.UpdateAsync(office);
 
-        return true;
+        return office.ToResponseDto();
     }
 
     public async Task<OfficeResponseDto> CreateAsync(CreateOfficeDto dto)
@@ -60,17 +66,15 @@ public class OfficeService : IOfficeService
         return entity.ToResponseDto();
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
         var office = await _officeRepository.GetByIdAsync(id);
 
         if (office is null)
         {
-            return false;
+            throw new NotFoundException($"Office with ID '{id}' was not found.");
         }
 
         await _officeRepository.DeleteAsync(office);
-
-        return true;
     }
 }
