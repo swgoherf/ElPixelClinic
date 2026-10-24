@@ -11,5 +11,5 @@ public class SpecializationEntity
     [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
 
-    public ICollection<ServiceEntity> Services { get; set; } = new List<ServiceEntity>();
+    public ICollection<MedicalServiceEntity> MedicalServices { get; set; } = new List<MedicalServiceEntity>();
 }

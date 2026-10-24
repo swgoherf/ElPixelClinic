@@ -4,9 +4,9 @@ namespace Services.Application.Common.Interfaces;
 
 public interface IMedicalServiceRepository
 {
-    Task<IEnumerable<ServiceEntity>> GetAllAsync();
-    Task<ServiceEntity?> GetByIdAsync(Guid id);
-    Task AddAsync(ServiceEntity service);
-    Task UpdateAsync(ServiceEntity service);
-    Task DeleteAsync(ServiceEntity service);
+    Task<IEnumerable<MedicalServiceEntity>> GetAllAsync();
+    Task<MedicalServiceEntity?> GetByIdAsync(Guid id);
+    Task AddAsync(MedicalServiceEntity service);
+    Task UpdateAsync(MedicalServiceEntity service);
+    Task DeleteAsync(MedicalServiceEntity service);
 }

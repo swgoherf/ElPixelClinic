@@ -1,6 +1,6 @@
-namespace Services.Application.DTOs.ServiceDtos;
+namespace Services.Application.DTOs.MedicalServiceDtos;
 
-public record ServiceResponseDto(
+public record MedicalServiceResponseDto(
     Guid Id,
     string Name,
     decimal Price,

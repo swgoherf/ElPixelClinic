@@ -1,13 +1,13 @@
-using Services.Application.DTOs.ServiceDtos;
+using Services.Application.DTOs.MedicalServiceDtos;
 using Services.Domain.Entities;
 
 namespace Services.Application.Mappings;
 
-public static class ServiceMappingExtensions
+public static class MedicalServiceMappingExtensions
 {
-    public static ServiceResponseDto ToResponseDto(this ServiceEntity service)
+    public static MedicalServiceResponseDto ToResponseDto(this MedicalServiceEntity service)
     {
-        return new ServiceResponseDto(
+        return new MedicalServiceResponseDto(
             service.Id,
             service.Name,
             service.Price,

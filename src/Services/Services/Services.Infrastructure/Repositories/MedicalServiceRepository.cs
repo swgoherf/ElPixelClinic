@@ -14,31 +14,31 @@ public class MedicalServiceRepository : IMedicalServiceRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<ServiceEntity>> GetAllAsync()
+    public async Task<IEnumerable<MedicalServiceEntity>> GetAllAsync()
     {
-        return await _context.Services.ToListAsync();
+        return await _context.MedicalServices.ToListAsync();
     }
 
-    public async Task<ServiceEntity?> GetByIdAsync(Guid id)
+    public async Task<MedicalServiceEntity?> GetByIdAsync(Guid id)
     {
-        return await _context.Services.FindAsync(id);
+        return await _context.MedicalServices.FindAsync(id);
     }
 
-    public async Task AddAsync(ServiceEntity service)
+    public async Task AddAsync(MedicalServiceEntity service)
     {
-        await _context.Services.AddAsync(service);
+        await _context.MedicalServices.AddAsync(service);
         await _context.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(ServiceEntity service)
+    public async Task UpdateAsync(MedicalServiceEntity service)
     {
-        _context.Services.Update(service);
+        _context.MedicalServices.Update(service);
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(ServiceEntity service)
+    public async Task DeleteAsync(MedicalServiceEntity service)
     {
-        _context.Services.Remove(service);
+        _context.MedicalServices.Remove(service);
         await _context.SaveChangesAsync();
     }
 }

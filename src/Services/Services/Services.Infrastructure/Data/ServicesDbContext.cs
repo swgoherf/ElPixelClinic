@@ -10,15 +10,15 @@ public class ServicesDbContext : DbContext
     }
 
     public DbSet<SpecializationEntity> Specializations { get; set; }
-    public DbSet<ServiceEntity> Services { get; set; }
+    public DbSet<MedicalServiceEntity> MedicalServices { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<ServiceEntity>()
+        modelBuilder.Entity<MedicalServiceEntity>()
             .HasOne(s => s.Specialization)
-            .WithMany(sp => sp.Services)
+            .WithMany(sp => sp.MedicalServices)
             .HasForeignKey(s => s.SpecializationId)
             .OnDelete(DeleteBehavior.Restrict);
     }

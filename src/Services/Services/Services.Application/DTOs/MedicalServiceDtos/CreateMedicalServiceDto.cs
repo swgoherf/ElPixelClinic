@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Services.Application.DTOs.ServiceDtos;
+namespace Services.Application.DTOs.MedicalServiceDtos;
 
-public record UpdateServiceDto(
+public record CreateMedicalServiceDto(
     [Required][MaxLength(150)] string Name,
     [Range(0, 1000000)] decimal Price,
     bool IsActive = true,

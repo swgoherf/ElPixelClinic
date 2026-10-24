@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Services.Domain.Entities;
 
-public class ServiceEntity
+public class MedicalServiceEntity
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();

@@ -1,5 +1,5 @@
 using Services.Application.Common.Interfaces;
-using Services.Application.DTOs.ServiceDtos;
+using Services.Application.DTOs.MedicalServiceDtos;
 using Services.Application.Mappings;
 using Services.Domain.Entities;
 
@@ -18,21 +18,21 @@ public class MedicalServiceService : IMedicalServiceService
         _specializationRepository = specializationRepository;
     }
 
-    public async Task<IEnumerable<ServiceResponseDto>> GetAllAsync()
+    public async Task<IEnumerable<MedicalServiceResponseDto>> GetAllAsync()
     {
         var services = await _serviceRepository.GetAllAsync();
 
         return services.Select(s => s.ToResponseDto());
     }
 
-    public async Task<ServiceResponseDto?> GetByIdAsync(Guid id)
+    public async Task<MedicalServiceResponseDto?> GetByIdAsync(Guid id)
     {
         var service = await _serviceRepository.GetByIdAsync(id);
 
         return service?.ToResponseDto();
     }
 
-    public async Task<bool> UpdateAsync(Guid id, UpdateServiceDto dto)
+    public async Task<bool> UpdateAsync(Guid id, UpdateMedicalServiceDto dto)
     {
         var service = await _serviceRepository.GetByIdAsync(id);
 
@@ -58,7 +58,7 @@ public class MedicalServiceService : IMedicalServiceService
         return true;
     }
 
-    public async Task<ServiceResponseDto> CreateAsync(CreateServiceDto dto)
+    public async Task<MedicalServiceResponseDto> CreateAsync(CreateMedicalServiceDto dto)
     {
         var specializationExists = await _specializationRepository.ExistsAsync(dto.SpecializationId);
 
@@ -67,7 +67,7 @@ public class MedicalServiceService : IMedicalServiceService
             throw new ArgumentException($"Specialization with ID '{dto.SpecializationId}' does not exist.");
         }
 
-        var entity = new ServiceEntity
+        var entity = new MedicalServiceEntity
         {
             Name = dto.Name,
             Price = dto.Price,
