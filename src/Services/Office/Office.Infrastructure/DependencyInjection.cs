@@ -14,7 +14,6 @@ public static class DependencyInjection
         services.AddDbContext<OfficeDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("SqlServerConnection")));
 
-        services.AddScoped<IOfficeDbContext>(provider => provider.GetRequiredService<OfficeDbContext>());
         services.AddScoped<IOfficeRepository, OfficeRepository>();
 
         return services;

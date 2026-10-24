@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Office.Application.Common.Interfaces;
 using Office.Domain.Entities;
 
 namespace Office.Infrastructure.Data;
 
-public class OfficeDbContext : DbContext, IOfficeDbContext
+public class OfficeDbContext : DbContext
 {
     public OfficeDbContext(DbContextOptions<OfficeDbContext> options) : base(options)
     {

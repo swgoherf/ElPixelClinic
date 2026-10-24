@@ -1,14 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Services.Application.Common.Interfaces;
 using Services.Domain.Entities;
+using Services.Infrastructure.Data;
 
 namespace Services.Infrastructure.Repositories;
 
 public class MedicalServiceRepository : IMedicalServiceRepository
 {
-    private readonly IServicesDbContext _context;
+    private readonly ServicesDbContext _context;
 
-    public MedicalServiceRepository(IServicesDbContext context)
+    public MedicalServiceRepository(ServicesDbContext context)
     {
         _context = context;
     }

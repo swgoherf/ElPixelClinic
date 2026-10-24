@@ -1,14 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Services.Application.Common.Interfaces;
 using Services.Domain.Entities;
+using Services.Infrastructure.Data;
 
 namespace Services.Infrastructure.Repositories;
 
 public class SpecializationRepository : ISpecializationRepository
 {
-    private readonly IServicesDbContext _context;
+    private readonly ServicesDbContext _context;
 
-    public SpecializationRepository(IServicesDbContext context)
+    public SpecializationRepository(ServicesDbContext context)
     {
         _context = context;
     }

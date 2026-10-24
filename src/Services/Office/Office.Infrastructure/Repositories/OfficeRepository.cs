@@ -1,14 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Office.Application.Common.Interfaces;
 using Office.Domain.Entities;
+using Office.Infrastructure.Data;
 
 namespace Office.Infrastructure.Repositories;
 
 public class OfficeRepository : IOfficeRepository
 {
-    private readonly IOfficeDbContext _context;
+    private readonly OfficeDbContext _context;
 
-    public OfficeRepository(IOfficeDbContext context)
+    public OfficeRepository(OfficeDbContext context)
     {
         _context = context;
     }

@@ -14,7 +14,6 @@ public static class DependencyInjection
         services.AddDbContext<ServicesDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("SqlServerConnection")));
 
-        services.AddScoped<IServicesDbContext>(provider => provider.GetRequiredService<ServicesDbContext>());
         services.AddScoped<IMedicalServiceRepository, MedicalServiceRepository>();
         services.AddScoped<ISpecializationRepository, SpecializationRepository>();
 

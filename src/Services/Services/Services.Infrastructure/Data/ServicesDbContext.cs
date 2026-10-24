@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Services.Application.Common.Interfaces;
 using Services.Domain.Entities;
 
 namespace Services.Infrastructure.Data;
 
-public class ServicesDbContext : DbContext, IServicesDbContext
+public class ServicesDbContext : DbContext
 {
     public ServicesDbContext(DbContextOptions<ServicesDbContext> options) : base(options)
     {
