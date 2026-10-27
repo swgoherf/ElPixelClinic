@@ -1,0 +1,61 @@
+using Microsoft.AspNetCore.Mvc;
+using Services.Application.DTOs.SpecializationDtos;
+using Services.Application.Services;
+
+namespace Services.Api.Controllers;
+
+[Route("api/specializations")]
+[ApiController]
+public class SpecializationsController : ControllerBase
+{
+    private readonly ISpecializationService _specializationService;
+
+    public SpecializationsController(ISpecializationService specializationService)
+    {
+        _specializationService = specializationService;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<SpecializationResponseDto>>> GetSpecializations()
+    {
+        var specializations = await _specializationService.GetAllAsync();
+
+        return Ok(specializations);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<SpecializationResponseDto>> GetSpecialization(Guid id)
+    {
+        var specialization = await _specializationService.GetByIdAsync(id);
+
+        return Ok(specialization);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateSpecialization(Guid id, UpdateSpecializationDto dto)
+    {
+        await _specializationService.UpdateAsync(id, dto);
+
+        return NoContent();
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<SpecializationResponseDto>> CreateSpecialization(CreateSpecializationDto dto)
+    {
+        var createdSpecialization = await _specializationService.CreateAsync(dto);
+
+        return CreatedAtAction(
+            nameof(GetSpecialization),
+            new { id = createdSpecialization.Id },
+            createdSpecialization
+        );
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteSpecialization(Guid id)
+    {
+        await _specializationService.DeleteAsync(id);
+
+        return NoContent();
+    }
+}
