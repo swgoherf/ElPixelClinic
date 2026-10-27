@@ -4,7 +4,7 @@ using Office.Application.Services;
 
 namespace Office.Api.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/offices")]
 [ApiController]
 public class OfficesController : ControllerBase
 {
@@ -23,7 +23,7 @@ public class OfficesController : ControllerBase
         return Ok(offices);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<ActionResult<OfficeResponseDto>> GetOffice(Guid id)
     {
         var office = await _officeService.GetByIdAsync(id);
@@ -31,7 +31,7 @@ public class OfficesController : ControllerBase
         return Ok(office);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateOffice(Guid id, UpdateOfficeDto dto)
     {
         await _officeService.UpdateAsync(id, dto);
@@ -51,7 +51,7 @@ public class OfficesController : ControllerBase
         );
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteOffice(Guid id)
     {
         await _officeService.DeleteAsync(id);

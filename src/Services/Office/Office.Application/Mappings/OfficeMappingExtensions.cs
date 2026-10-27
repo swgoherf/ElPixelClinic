@@ -9,7 +9,10 @@ public static class OfficeMappingExtensions
     {
         return new OfficeResponseDto(
             office.Id,
-            office.Address,
+            office.Address.City,
+            office.Address.Street,
+            office.Address.HouseNumber,
+            office.Address.ToString(),
             office.RegistryPhoneNumber,
             office.IsActive
         );

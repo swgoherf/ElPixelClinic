@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Office.Domain.ValueObjects;
 
 namespace Office.Domain.Entities;
 
@@ -8,8 +9,7 @@ public class OfficeEntity
     public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
-    [MaxLength(250)]
-    public string Address { get; set; } = string.Empty;
+    public Address Address { get; set; } = null!;
 
     [Required]
     [Phone]

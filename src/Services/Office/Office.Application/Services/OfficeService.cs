@@ -3,6 +3,7 @@ using Office.Application.Common.Interfaces;
 using Office.Application.DTOs;
 using Office.Application.Mappings;
 using Office.Domain.Entities;
+using Office.Domain.ValueObjects;
 
 namespace Office.Application.Services;
 
@@ -43,7 +44,7 @@ public class OfficeService : IOfficeService
             throw new NotFoundException($"Office with ID '{id}' was not found.");
         }
 
-        office.Address = dto.Address;
+        office.Address = new Address(dto.City, dto.Street, dto.HouseNumber);
         office.RegistryPhoneNumber = dto.RegistryPhoneNumber;
         office.IsActive = dto.IsActive;
 
@@ -56,7 +57,7 @@ public class OfficeService : IOfficeService
     {
         var entity = new OfficeEntity
         {
-            Address = dto.Address,
+            Address = new Address(dto.City, dto.Street, dto.HouseNumber),
             RegistryPhoneNumber = dto.RegistryPhoneNumber,
             IsActive = dto.IsActive
         };

@@ -4,7 +4,7 @@ using Services.Application.Services;
 
 namespace Services.Api.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/specializations")]
 [ApiController]
 public class SpecializationsController : ControllerBase
 {
@@ -23,7 +23,7 @@ public class SpecializationsController : ControllerBase
         return Ok(specializations);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<ActionResult<SpecializationResponseDto>> GetSpecialization(Guid id)
     {
         var specialization = await _specializationService.GetByIdAsync(id);
@@ -31,7 +31,7 @@ public class SpecializationsController : ControllerBase
         return Ok(specialization);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateSpecialization(Guid id, UpdateSpecializationDto dto)
     {
         await _specializationService.UpdateAsync(id, dto);
@@ -51,7 +51,7 @@ public class SpecializationsController : ControllerBase
         );
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteSpecialization(Guid id)
     {
         await _specializationService.DeleteAsync(id);

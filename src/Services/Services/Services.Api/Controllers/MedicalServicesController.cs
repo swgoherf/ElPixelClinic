@@ -23,7 +23,7 @@ public class MedicalServicesController : ControllerBase
         return Ok(services);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<ActionResult<MedicalServiceResponseDto>> GetService(Guid id)
     {
         var service = await _medicalServiceService.GetByIdAsync(id);
@@ -31,7 +31,7 @@ public class MedicalServicesController : ControllerBase
         return Ok(service);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateService(Guid id, UpdateMedicalServiceDto dto)
     {
         await _medicalServiceService.UpdateAsync(id, dto);
@@ -51,7 +51,7 @@ public class MedicalServicesController : ControllerBase
         );
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteService(Guid id)
     {
         await _medicalServiceService.DeleteAsync(id);
