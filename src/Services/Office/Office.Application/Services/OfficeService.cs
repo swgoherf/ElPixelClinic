@@ -10,10 +10,14 @@ namespace Office.Application.Services;
 public class OfficeService : IOfficeService
 {
     private readonly IOfficeRepository _officeRepository;
+    private readonly IOfficeEventPublisher _eventPublisher;
 
-    public OfficeService(IOfficeRepository officeRepository)
+    public OfficeService(
+        IOfficeRepository officeRepository,
+        IOfficeEventPublisher eventPublisher)
     {
         _officeRepository = officeRepository;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<IEnumerable<OfficeResponseDto>> GetAllAsync()
@@ -50,6 +54,9 @@ public class OfficeService : IOfficeService
 
         await _officeRepository.UpdateAsync(office);
 
+        var formattedAddress = $"{office.Address.City}, {office.Address.Street}, {office.Address.HouseNumber}";
+        await _eventPublisher.PublishOfficeCreatedOrUpdatedAsync(office.Id, formattedAddress, office.IsActive);
+
         return office.ToResponseDto();
     }
 
@@ -64,6 +71,9 @@ public class OfficeService : IOfficeService
 
         await _officeRepository.AddAsync(entity);
 
+        var formattedAddress = $"{entity.Address.City}, {entity.Address.Street}, {entity.Address.HouseNumber}";
+        await _eventPublisher.PublishOfficeCreatedOrUpdatedAsync(entity.Id, formattedAddress, entity.IsActive);
+
         return entity.ToResponseDto();
     }
 
@@ -77,5 +87,7 @@ public class OfficeService : IOfficeService
         }
 
         await _officeRepository.DeleteAsync(office);
+
+        await _eventPublisher.PublishOfficeDeletedAsync(id);
     }
 }

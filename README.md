@@ -8,7 +8,7 @@ dotnet tool install --global dotnet-ef
 
 ### 2. Запустить БД
 ```bash
-docker compose up -d sqlserver
+docker compose up -d sqlserver postgres
 ```
 
 ### 3. Восстановить пакеты и применить миграции
@@ -31,6 +31,7 @@ docker compose up -d --build
 ### Ссылки:
 * **Office API:** http://localhost:5253/swagger
 * **Services API:** http://localhost:5109/swagger
+* **Profiles API:** http://localhost:5172/swagger
 
 ### Остановить:
 ```bash

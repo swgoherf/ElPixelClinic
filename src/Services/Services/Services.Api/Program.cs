@@ -1,8 +1,10 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Services.Api.Exceptions;
 using Services.Application.Common.Interfaces;
 using Services.Application.Services;
 using Services.Infrastructure.Data;
+using Services.Infrastructure.Events;
 using Services.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,8 +15,29 @@ builder.Services.AddDbContext<ServicesDbContext>(options =>
 builder.Services.AddScoped<IMedicalServiceRepository, MedicalServiceRepository>();
 builder.Services.AddScoped<ISpecializationRepository, SpecializationRepository>();
 
+builder.Services.AddScoped<IServicesEventPublisher, MassTransitServicesEventPublisher>();
 builder.Services.AddScoped<IMedicalServiceService, MedicalServiceService>();
 builder.Services.AddScoped<ISpecializationService, SpecializationService>();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        var rabbitConfig = builder.Configuration.GetSection("RabbitMq");
+        var host = rabbitConfig.GetValue<string>("Host") ?? "localhost";
+        var port = rabbitConfig.GetValue<ushort>("Port", 5672);
+        var username = rabbitConfig.GetValue<string>("Username") ?? "guest";
+        var password = rabbitConfig.GetValue<string>("Password") ?? "guest";
+
+        cfg.Host(host, port, "/", h =>
+        {
+            h.Username(username);
+            h.Password(password);
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
