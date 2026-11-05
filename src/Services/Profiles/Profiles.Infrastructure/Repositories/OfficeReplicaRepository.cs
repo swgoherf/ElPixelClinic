@@ -40,6 +40,13 @@ public class OfficeReplicaRepository : IOfficeReplicaRepository
         await connection.ExecuteAsync(sql, office);
     }
 
+    public async Task UpdateStatusAsync(Guid id, bool isActive)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        const string sql = "UPDATE offices_replica SET is_active = @IsActive WHERE id = @Id";
+        await connection.ExecuteAsync(sql, new { Id = id, IsActive = isActive });
+    }
+
     public async Task DeleteAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();

@@ -1,4 +1,4 @@
-namespace Profiles.Application.Common.Events;
+namespace ElPixelClinic.Contracts.Events;
 
 public record AppointmentStatusChangedEvent(
     Guid AppointmentId,

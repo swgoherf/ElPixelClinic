@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="../../Common/ElPixelClinic.Contracts/ElPixelClinic.Contracts.csproj" />
   <Project Path="Services.Api/Services.Api.csproj" />
   <Project Path="Services.Application/Services.Application.csproj" />
   <Project Path="Services.Domain/Services.Domain.csproj" />

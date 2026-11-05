@@ -1,6 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Profiles.Application.Common.Events;
+using ElPixelClinic.Contracts.Events;
 using Profiles.Application.Common.Interfaces;
 using Profiles.Domain.Entities;
 
@@ -8,6 +8,7 @@ namespace Profiles.Infrastructure.Consumers;
 
 public class OfficeEventsConsumer :
     IConsumer<OfficeCreatedOrUpdatedEvent>,
+    IConsumer<OfficeStatusChangedEvent>,
     IConsumer<OfficeDeletedEvent>
 {
     private readonly IOfficeReplicaRepository _officeRepository;
@@ -32,6 +33,14 @@ public class OfficeEventsConsumer :
             Address = msg.Address,
             IsActive = msg.IsActive
         });
+    }
+
+    public async Task Consume(ConsumeContext<OfficeStatusChangedEvent> context)
+    {
+        var msg = context.Message;
+        _logger.LogInformation("Processing OfficeStatusChangedEvent for Office ID: {OfficeId}, IsActive: {IsActive}", msg.OfficeId, msg.IsActive);
+
+        await _officeRepository.UpdateStatusAsync(msg.OfficeId, msg.IsActive);
     }
 
     public async Task Consume(ConsumeContext<OfficeDeletedEvent> context)

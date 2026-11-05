@@ -1,6 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Office.Application.Common.Events;
+using ElPixelClinic.Contracts.Events;
 using Office.Application.Common.Interfaces;
 
 namespace Office.Infrastructure.Events;
@@ -22,6 +22,12 @@ public class MassTransitOfficeEventPublisher : IOfficeEventPublisher
     {
         _logger.LogInformation("Publishing OfficeCreatedOrUpdatedEvent for Office ID: {OfficeId}, Address: {Address}", id, address);
         await _publishEndpoint.Publish(new OfficeCreatedOrUpdatedEvent(id, address, isActive));
+    }
+
+    public async Task PublishOfficeStatusChangedAsync(Guid id, bool isActive)
+    {
+        _logger.LogInformation("Publishing OfficeStatusChangedEvent for Office ID: {OfficeId}, IsActive: {IsActive}", id, isActive);
+        await _publishEndpoint.Publish(new OfficeStatusChangedEvent(id, isActive));
     }
 
     public async Task PublishOfficeDeletedAsync(Guid id)

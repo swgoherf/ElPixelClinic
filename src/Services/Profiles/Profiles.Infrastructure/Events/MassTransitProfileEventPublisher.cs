@@ -1,6 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Profiles.Application.Common.Events;
+using ElPixelClinic.Contracts.Events;
 using Profiles.Application.Common.Interfaces;
 
 namespace Profiles.Infrastructure.Events;

@@ -1,4 +1,4 @@
-namespace Profiles.Application.Common.Events;
+namespace ElPixelClinic.Contracts.Events;
 
 public record PatientProfileDeletedEvent(
     Guid PatientId

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Profiles.Domain\Profiles.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Common\ElPixelClinic.Contracts\ElPixelClinic.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

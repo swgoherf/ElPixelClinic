@@ -1,4 +1,4 @@
-using Services.Application.Common.Events;
+using ElPixelClinic.Contracts.Events;
 
 namespace Services.Application.Common.Interfaces;
 

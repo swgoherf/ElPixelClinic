@@ -8,5 +8,6 @@ public interface IOfficeService
     Task<OfficeResponseDto> GetByIdAsync(Guid id);
     Task<OfficeResponseDto> UpdateAsync(Guid id, UpdateOfficeDto dto);
     Task<OfficeResponseDto> CreateAsync(CreateOfficeDto dto);
+    Task ChangeStatusAsync(Guid id, bool isActive);
     Task DeleteAsync(Guid id);
 }

@@ -77,6 +77,21 @@ public class OfficeService : IOfficeService
         return entity.ToResponseDto();
     }
 
+    public async Task ChangeStatusAsync(Guid id, bool isActive)
+    {
+        var office = await _officeRepository.GetByIdAsync(id);
+
+        if (office is null)
+        {
+            throw new NotFoundException($"Office with ID '{id}' was not found.");
+        }
+
+        office.IsActive = isActive;
+        await _officeRepository.UpdateAsync(office);
+
+        await _eventPublisher.PublishOfficeStatusChangedAsync(id, isActive);
+    }
+
     public async Task DeleteAsync(Guid id)
     {
         var office = await _officeRepository.GetByIdAsync(id);

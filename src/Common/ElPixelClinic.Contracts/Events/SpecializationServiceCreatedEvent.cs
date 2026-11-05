@@ -1,4 +1,4 @@
-namespace Services.Application.Common.Events;
+namespace ElPixelClinic.Contracts.Events;
 
 public record SpecializationServiceCreatedEvent(
     string SpecializationName,
