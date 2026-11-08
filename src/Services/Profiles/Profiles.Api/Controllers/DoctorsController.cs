@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Profiles.Application.Common.Constants;
 using Profiles.Application.DTOs.DoctorDtos;
 using Profiles.Application.Services;
 
@@ -16,6 +18,7 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<DoctorCardResponseDto>>> GetDoctors(
         [FromQuery] string? fullName,
         [FromQuery] string? specialization,
@@ -33,6 +36,7 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpGet("admin")]
+    [Authorize(Roles = UserRoles.ReceptionistOrAdmin)]
     public async Task<ActionResult<IEnumerable<DoctorAdminResponseDto>>> GetDoctorsForAdmin(
         [FromQuery] string? fullName,
         [FromQuery] string? specialization,
@@ -52,6 +56,7 @@ public class DoctorsController : ControllerBase
 
     [HttpGet("filters/offices")]
     [HttpGet("offices")]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<DoctorOfficeFilterItemDto>>> GetOfficesFilter(
         [FromQuery] string? specialization,
         [FromQuery] bool atWorkOnly = false)
@@ -62,6 +67,7 @@ public class DoctorsController : ControllerBase
 
     [HttpGet("filters/specializations")]
     [HttpGet("specializations")]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<string>>> GetSpecializationsFilter(
         [FromQuery] Guid? officeId,
         [FromQuery] bool atWorkOnly = false)
@@ -71,6 +77,7 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<ActionResult<DoctorDetailResponseDto>> GetDoctorById(Guid id)
     {
         var doctor = await _doctorService.GetByIdForPatientAsync(id);
@@ -78,6 +85,7 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpGet("{id:guid}/admin")]
+    [Authorize(Roles = UserRoles.ReceptionistOrAdmin)]
     public async Task<ActionResult<DoctorAdminResponseDto>> GetDoctorByIdForAdmin(Guid id)
     {
         var doctor = await _doctorService.GetByIdForAdminAsync(id);
@@ -85,6 +93,7 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpGet("{id:guid}/owner")]
+    [Authorize(Roles = UserRoles.DoctorOrReceptionistOrAdmin)]
     public async Task<ActionResult<DoctorOwnerResponseDto>> GetDoctorByIdForOwner(Guid id)
     {
         var doctor = await _doctorService.GetByIdForOwnerAsync(id);
@@ -92,6 +101,7 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = UserRoles.ReceptionistOrAdmin)]
     public async Task<ActionResult<DoctorAdminResponseDto>> CreateDoctor([FromBody] CreateDoctorDto dto)
     {
         var created = await _doctorService.CreateAsync(dto);
@@ -99,6 +109,7 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = UserRoles.DoctorOrReceptionistOrAdmin)]
     public async Task<ActionResult<DoctorAdminResponseDto>> UpdateDoctor(Guid id, [FromBody] UpdateDoctorDto dto)
     {
         var updated = await _doctorService.UpdateAsync(id, dto);
@@ -106,6 +117,7 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpPatch("{id:guid}/status")]
+    [Authorize(Roles = UserRoles.ReceptionistOrAdmin)]
     public async Task<IActionResult> ChangeDoctorStatus(Guid id, [FromBody] ChangeDoctorStatusDto dto)
     {
         await _doctorService.ChangeStatusAsync(id, dto.Status);

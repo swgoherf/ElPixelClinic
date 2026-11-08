@@ -12,15 +12,18 @@ public class PatientService : IPatientService
     private readonly IPatientRepository _patientRepository;
     private readonly IDoctorPatientAccessRepository _accessRepository;
     private readonly IProfileEventPublisher _eventPublisher;
+    private readonly ICurrentUserService _currentUserService;
 
     public PatientService(
         IPatientRepository patientRepository,
         IDoctorPatientAccessRepository accessRepository,
-        IProfileEventPublisher eventPublisher)
+        IProfileEventPublisher eventPublisher,
+        ICurrentUserService currentUserService)
     {
         _patientRepository = patientRepository;
         _accessRepository = accessRepository;
         _eventPublisher = eventPublisher;
+        _currentUserService = currentUserService;
     }
 
     public async Task<PatientMatchCheckResultDto> CreateSelfAsync(CreatePatientSelfDto dto)
@@ -44,6 +47,7 @@ public class PatientService : IPatientService
 
         var newEntity = new PatientEntity
         {
+            Id = _currentUserService.UserId ?? Guid.NewGuid(),
             PhotoUrl = dto.PhotoUrl,
             FirstName = dto.FirstName.Trim(),
             LastName = dto.LastName.Trim(),
@@ -71,6 +75,7 @@ public class PatientService : IPatientService
 
         var entity = new PatientEntity
         {
+            Id = _currentUserService.UserId ?? Guid.NewGuid(),
             PhotoUrl = dto.PhotoUrl,
             FirstName = dto.FirstName.Trim(),
             LastName = dto.LastName.Trim(),
@@ -103,6 +108,11 @@ public class PatientService : IPatientService
 
     public async Task<PatientPersonalInfoDto> CreateByAdminAsync(CreatePatientByAdminDto dto)
     {
+        if (!_currentUserService.IsReceptionistOrAdmin)
+        {
+            throw new ForbiddenException("Only receptionists or administrators can create patient profiles.");
+        }
+
         ValidateCommonFields(dto.FirstName, dto.LastName, dto.DateOfBirth);
 
         var entity = new PatientEntity
@@ -130,6 +140,11 @@ public class PatientService : IPatientService
             throw new NotFoundException($"Patient with ID '{id}' was not found.");
         }
 
+        if (!_currentUserService.IsReceptionistOrAdmin && _currentUserService.UserId != id)
+        {
+            throw new ForbiddenException("You do not have permission to edit this profile.");
+        }
+
         ValidateCommonFields(dto.FirstName, dto.LastName, dto.DateOfBirth);
 
         patient.PhotoUrl = dto.PhotoUrl;
@@ -144,7 +159,7 @@ public class PatientService : IPatientService
         return patient.ToPersonalInfoDto();
     }
 
-    public async Task<PatientPersonalInfoDto> GetPersonalInfoAsync(Guid id, Guid? requestingDoctorId = null, bool isReceptionist = false)
+    public async Task<PatientPersonalInfoDto> GetPersonalInfoAsync(Guid id)
     {
         var patient = await _patientRepository.GetByIdAsync(id);
         if (patient is null)
@@ -152,19 +167,12 @@ public class PatientService : IPatientService
             throw new NotFoundException($"Patient with ID '{id}' was not found.");
         }
 
-        if (requestingDoctorId.HasValue)
-        {
-            var hasAccess = await _accessRepository.HasAccessAsync(requestingDoctorId.Value, id);
-            if (!hasAccess)
-            {
-                throw new ForbiddenException("Access denied. Doctor must have an approved appointment with this patient.");
-            }
-        }
+        await EnsureUserCanAccessPersonalInfoAsync(id);
 
         return patient.ToPersonalInfoDto();
     }
 
-    public async Task<IEnumerable<PatientAppointmentResultDto>> GetAppointmentResultsAsync(Guid id, Guid? requestingDoctorId = null, bool isReceptionist = false)
+    public async Task<IEnumerable<PatientAppointmentResultDto>> GetAppointmentResultsAsync(Guid id)
     {
         var patient = await _patientRepository.GetByIdAsync(id);
         if (patient is null)
@@ -172,27 +180,46 @@ public class PatientService : IPatientService
             throw new NotFoundException($"Patient with ID '{id}' was not found.");
         }
 
-        if (isReceptionist)
+        if (!_currentUserService.IsAuthenticated)
+        {
+            throw new UnauthorizedException("User is not authenticated.");
+        }
+
+        if (_currentUserService.IsReceptionistOrAdmin)
         {
             throw new ForbiddenException("Receptionists are not allowed to view patient appointment results.");
         }
 
-        if (requestingDoctorId.HasValue)
+        if (_currentUserService.IsDoctor)
         {
-            var hasAccess = await _accessRepository.HasAccessAsync(requestingDoctorId.Value, id);
+            var doctorId = _currentUserService.GetRequiredUserId();
+            var hasAccess = await _accessRepository.HasAccessAsync(doctorId, id);
             if (!hasAccess)
             {
                 throw new ForbiddenException("Access denied. Doctor must have an approved appointment with this patient.");
             }
+        }
+        else if (_currentUserService.IsPatient)
+        {
+            if (_currentUserService.UserId != id)
+            {
+                throw new ForbiddenException("Patients are only allowed to view their own appointment results.");
+            }
+        }
+        else
+        {
+            throw new ForbiddenException("Access denied.");
         }
 
         return Array.Empty<PatientAppointmentResultDto>();
     }
 
-    public async Task<PatientFullProfileDto> GetByIdAsync(Guid id, Guid? requestingDoctorId = null, bool isReceptionist = false)
+    public async Task<PatientFullProfileDto> GetByIdAsync(Guid id)
     {
-        var personalInfo = await GetPersonalInfoAsync(id, requestingDoctorId, isReceptionist);
-        var appointmentResults = isReceptionist ? null : await GetAppointmentResultsAsync(id, requestingDoctorId, isReceptionist);
+        var personalInfo = await GetPersonalInfoAsync(id);
+        var appointmentResults = _currentUserService.IsReceptionistOrAdmin
+            ? null
+            : await GetAppointmentResultsAsync(id);
 
         return new PatientFullProfileDto(
             PersonalInfo: personalInfo,
@@ -202,12 +229,22 @@ public class PatientService : IPatientService
 
     public async Task<IEnumerable<PatientListItemDto>> GetListAsync(string? fullNameSearch = null)
     {
+        if (!_currentUserService.IsReceptionistOrAdmin)
+        {
+            throw new ForbiddenException("Only receptionists or administrators can view the patient list.");
+        }
+
         var patients = await _patientRepository.GetAllAsync(fullNameSearch);
         return patients.Select(patient => patient.ToListItemDto());
     }
 
     public async Task DeleteAsync(Guid id)
     {
+        if (!_currentUserService.IsReceptionistOrAdmin)
+        {
+            throw new ForbiddenException("Only receptionists or administrators can delete patient profiles.");
+        }
+
         var patient = await _patientRepository.GetByIdAsync(id);
         if (patient is null)
         {
@@ -216,6 +253,41 @@ public class PatientService : IPatientService
 
         await _patientRepository.DeleteAsync(id);
         await _eventPublisher.PublishPatientProfileDeletedAsync(id);
+    }
+
+    private async Task EnsureUserCanAccessPersonalInfoAsync(Guid patientId)
+    {
+        if (!_currentUserService.IsAuthenticated)
+        {
+            throw new UnauthorizedException("User is not authenticated.");
+        }
+
+        if (_currentUserService.IsReceptionistOrAdmin)
+        {
+            return;
+        }
+
+        if (_currentUserService.IsPatient)
+        {
+            if (_currentUserService.UserId != patientId)
+            {
+                throw new ForbiddenException("Patients are only allowed to view their own profile.");
+            }
+            return;
+        }
+
+        if (_currentUserService.IsDoctor)
+        {
+            var doctorId = _currentUserService.GetRequiredUserId();
+            var hasAccess = await _accessRepository.HasAccessAsync(doctorId, patientId);
+            if (!hasAccess)
+            {
+                throw new ForbiddenException("Access denied. Doctor must have an approved appointment with this patient.");
+            }
+            return;
+        }
+
+        throw new ForbiddenException("Access denied.");
     }
 
     private static int CalculateMatchScore(CreatePatientSelfDto dto, PatientEntity candidate)

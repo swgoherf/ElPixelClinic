@@ -1,6 +1,11 @@
+using System.Text;
 using Dapper;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using Profiles.Api.Exceptions;
+using Profiles.Api.Services;
 using Profiles.Application.Common.Interfaces;
 using Profiles.Application.Services;
 using Profiles.Infrastructure.Consumers;
@@ -12,6 +17,9 @@ DefaultTypeMap.MatchNamesWithUnderscores = true;
 SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
 builder.Services.AddTransient<DatabaseInitializer>();
@@ -29,6 +37,34 @@ builder.Services.AddScoped<IProfileEventPublisher, MassTransitProfileEventPublis
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IReceptionistService, ReceptionistService>();
+
+var jwtConfig = builder.Configuration.GetSection("Jwt");
+var secretKey = jwtConfig.GetValue<string>("SecretKey") ?? "SuperSecretClinicKeyForJwtTokensThatIsLongEnough32Chars!";
+var issuer = jwtConfig.GetValue<string>("Issuer") ?? "ElPixelClinic.Identity";
+var audience = jwtConfig.GetValue<string>("Audience") ?? "ElPixelClinic";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = issuer,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddMassTransit(x =>
 {
@@ -62,7 +98,33 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Profiles API",
+        Version = "v1",
+        Description = "Profiles API for ElPixelClinic - Doctor, Patient and Receptionist profiles"
+    });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Enter token without 'Bearer ' prefix.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    c.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer"),
+            new List<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -88,6 +150,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseExceptionHandler();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

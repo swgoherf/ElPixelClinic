@@ -9,9 +9,9 @@ public interface IPatientService
     Task<PatientPersonalInfoDto> ConfirmMatchAsync(Guid existingPatientId);
     Task<PatientPersonalInfoDto> CreateByAdminAsync(CreatePatientByAdminDto dto);
     Task<PatientPersonalInfoDto> UpdateAsync(Guid id, UpdatePatientDto dto);
-    Task<PatientFullProfileDto> GetByIdAsync(Guid id, Guid? requestingDoctorId = null, bool isReceptionist = false);
-    Task<PatientPersonalInfoDto> GetPersonalInfoAsync(Guid id, Guid? requestingDoctorId = null, bool isReceptionist = false);
-    Task<IEnumerable<PatientAppointmentResultDto>> GetAppointmentResultsAsync(Guid id, Guid? requestingDoctorId = null, bool isReceptionist = false);
+    Task<PatientFullProfileDto> GetByIdAsync(Guid id);
+    Task<PatientPersonalInfoDto> GetPersonalInfoAsync(Guid id);
+    Task<IEnumerable<PatientAppointmentResultDto>> GetAppointmentResultsAsync(Guid id);
     Task<IEnumerable<PatientListItemDto>> GetListAsync(string? fullNameSearch = null);
     Task DeleteAsync(Guid id);
 }

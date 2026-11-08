@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Profiles.Application.Common.Constants;
 using Profiles.Application.DTOs.ReceptionistDtos;
 using Profiles.Application.Services;
 
@@ -6,6 +8,7 @@ namespace Profiles.Api.Controllers;
 
 [ApiController]
 [Route("api/receptionists")]
+[Authorize(Roles = UserRoles.ReceptionistOrAdmin)]
 public class ReceptionistsController : ControllerBase
 {
     private readonly IReceptionistService _receptionistService;

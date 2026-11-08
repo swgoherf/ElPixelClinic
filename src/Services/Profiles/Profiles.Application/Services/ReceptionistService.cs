@@ -13,21 +13,29 @@ public class ReceptionistService : IReceptionistService
     private readonly IOfficeReplicaRepository _officeRepository;
     private readonly IRegisteredEmailReplicaRepository _registeredEmailRepository;
     private readonly IProfileEventPublisher _eventPublisher;
+    private readonly ICurrentUserService _currentUserService;
 
     public ReceptionistService(
         IReceptionistRepository receptionistRepository,
         IOfficeReplicaRepository officeRepository,
         IRegisteredEmailReplicaRepository registeredEmailRepository,
-        IProfileEventPublisher eventPublisher)
+        IProfileEventPublisher eventPublisher,
+        ICurrentUserService currentUserService)
     {
         _receptionistRepository = receptionistRepository;
         _officeRepository = officeRepository;
         _registeredEmailRepository = registeredEmailRepository;
         _eventPublisher = eventPublisher;
+        _currentUserService = currentUserService;
     }
 
     public async Task<IEnumerable<ReceptionistListItemDto>> GetListAsync()
     {
+        if (!_currentUserService.IsReceptionistOrAdmin)
+        {
+            throw new ForbiddenException("Only receptionists or administrators can view the receptionist list.");
+        }
+
         var receptionists = await _receptionistRepository.GetAllAsync();
         var offices = await _officeRepository.GetAddressDictionaryAsync();
 
@@ -40,6 +48,16 @@ public class ReceptionistService : IReceptionistService
 
     public async Task<ReceptionistResponseDto> GetByIdAsync(Guid id)
     {
+        if (!_currentUserService.IsAuthenticated)
+        {
+            throw new UnauthorizedException("User is not authenticated.");
+        }
+
+        if (!_currentUserService.IsReceptionistOrAdmin && _currentUserService.UserId != id)
+        {
+            throw new ForbiddenException("You can only view your own receptionist profile.");
+        }
+
         var receptionist = await _receptionistRepository.GetByIdAsync(id);
         if (receptionist is null)
         {
@@ -52,6 +70,11 @@ public class ReceptionistService : IReceptionistService
 
     public async Task<ReceptionistResponseDto> CreateAsync(CreateReceptionistDto dto)
     {
+        if (!_currentUserService.IsReceptionistOrAdmin)
+        {
+            throw new ForbiddenException("Only receptionists or administrators can create receptionist profiles.");
+        }
+
         ValidateReceptionist(dto.FirstName, dto.LastName, dto.Email, dto.OfficeId);
         await _officeRepository.EnsureExistsAndActiveAsync(dto.OfficeId);
 
@@ -84,6 +107,16 @@ public class ReceptionistService : IReceptionistService
 
     public async Task<ReceptionistResponseDto> UpdateAsync(Guid id, UpdateReceptionistDto dto)
     {
+        if (!_currentUserService.IsAuthenticated)
+        {
+            throw new UnauthorizedException("User is not authenticated.");
+        }
+
+        if (!_currentUserService.IsReceptionistOrAdmin && _currentUserService.UserId != id)
+        {
+            throw new ForbiddenException("You can only edit your own receptionist profile.");
+        }
+
         var receptionist = await _receptionistRepository.GetByIdAsync(id);
         if (receptionist is null)
         {
@@ -110,6 +143,11 @@ public class ReceptionistService : IReceptionistService
 
     public async Task DeleteAsync(Guid id)
     {
+        if (!_currentUserService.IsReceptionistOrAdmin)
+        {
+            throw new ForbiddenException("Only receptionists or administrators can delete receptionist profiles.");
+        }
+
         var receptionist = await _receptionistRepository.GetByIdAsync(id);
         if (receptionist is null)
         {

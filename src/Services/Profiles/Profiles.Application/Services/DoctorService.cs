@@ -15,19 +15,22 @@ public class DoctorService : IDoctorService
     private readonly ISpecializationServiceReplicaRepository _specializationServiceRepository;
     private readonly IRegisteredEmailReplicaRepository _registeredEmailRepository;
     private readonly IProfileEventPublisher _eventPublisher;
+    private readonly ICurrentUserService _currentUserService;
 
     public DoctorService(
         IDoctorRepository doctorRepository,
         IOfficeReplicaRepository officeRepository,
         ISpecializationServiceReplicaRepository specializationServiceRepository,
         IRegisteredEmailReplicaRepository registeredEmailRepository,
-        IProfileEventPublisher eventPublisher)
+        IProfileEventPublisher eventPublisher,
+        ICurrentUserService currentUserService)
     {
         _doctorRepository = doctorRepository;
         _officeRepository = officeRepository;
         _specializationServiceRepository = specializationServiceRepository;
         _registeredEmailRepository = registeredEmailRepository;
         _eventPublisher = eventPublisher;
+        _currentUserService = currentUserService;
     }
 
     public async Task<IEnumerable<DoctorCardResponseDto>> GetCardsAsync(DoctorFilterParameters filters)
@@ -64,6 +67,11 @@ public class DoctorService : IDoctorService
 
     public async Task<DoctorAdminResponseDto> GetByIdForAdminAsync(Guid id)
     {
+        if (!_currentUserService.IsReceptionistOrAdmin)
+        {
+            throw new ForbiddenException("Only receptionists or administrators can view doctor administration profiles.");
+        }
+
         var doctor = await _doctorRepository.GetByIdAsync(id);
         if (doctor is null)
         {
@@ -76,6 +84,16 @@ public class DoctorService : IDoctorService
 
     public async Task<DoctorOwnerResponseDto> GetByIdForOwnerAsync(Guid id)
     {
+        if (!_currentUserService.IsAuthenticated)
+        {
+            throw new UnauthorizedException("User is not authenticated.");
+        }
+
+        if (!_currentUserService.IsReceptionistOrAdmin && _currentUserService.UserId != id)
+        {
+            throw new ForbiddenException("You can only view your own doctor profile.");
+        }
+
         var doctor = await _doctorRepository.GetByIdAsync(id);
         if (doctor is null)
         {
@@ -88,6 +106,11 @@ public class DoctorService : IDoctorService
 
     public async Task<IEnumerable<DoctorAdminResponseDto>> GetAdminListAsync(DoctorFilterParameters filters)
     {
+        if (!_currentUserService.IsReceptionistOrAdmin)
+        {
+            throw new ForbiddenException("Only receptionists or administrators can view the doctor administration list.");
+        }
+
         var doctors = await _doctorRepository.GetAllAsync(
             fullName: filters.FullName,
             specialization: filters.Specialization,
@@ -106,6 +129,11 @@ public class DoctorService : IDoctorService
 
     public async Task<DoctorAdminResponseDto> CreateAsync(CreateDoctorDto dto)
     {
+        if (!_currentUserService.IsReceptionistOrAdmin)
+        {
+            throw new ForbiddenException("Only receptionists or administrators can create doctor profiles.");
+        }
+
         ValidateDoctor(dto.FirstName, dto.LastName, dto.DateOfBirth, dto.CareerStartYear, dto.Email, dto.Specialization, dto.OfficeId);
         await _officeRepository.EnsureExistsAndActiveAsync(dto.OfficeId);
         await EnsureSpecializationValidAsync(dto.Specialization);
@@ -143,6 +171,16 @@ public class DoctorService : IDoctorService
 
     public async Task<DoctorAdminResponseDto> UpdateAsync(Guid id, UpdateDoctorDto dto)
     {
+        if (!_currentUserService.IsAuthenticated)
+        {
+            throw new UnauthorizedException("User is not authenticated.");
+        }
+
+        if (!_currentUserService.IsReceptionistOrAdmin && _currentUserService.UserId != id)
+        {
+            throw new ForbiddenException("You can only edit your own doctor profile.");
+        }
+
         var doctor = await _doctorRepository.GetByIdAsync(id);
         if (doctor is null)
         {
@@ -183,6 +221,11 @@ public class DoctorService : IDoctorService
 
     public async Task ChangeStatusAsync(Guid id, DoctorStatus status)
     {
+        if (!_currentUserService.IsReceptionistOrAdmin)
+        {
+            throw new ForbiddenException("Only receptionists or administrators can change doctor status.");
+        }
+
         var doctor = await _doctorRepository.GetByIdAsync(id);
         if (doctor is null)
         {
