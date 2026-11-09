@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Dapper;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -57,6 +57,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = true,
         ValidIssuer = issuer,
         ValidateAudience = true,
+        ValidAudience = audience,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
