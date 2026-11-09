@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Dapper;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -118,10 +118,10 @@ builder.Services.AddSwaggerGen(c =>
         BearerFormat = "JWT"
     });
 
-    c.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
+    c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
     {
         {
-            new OpenApiSecuritySchemeReference("Bearer"),
+            new OpenApiSecuritySchemeReference("Bearer", doc),
             new List<string>()
         }
     });
