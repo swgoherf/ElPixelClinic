@@ -54,6 +54,7 @@ public class DoctorService : IDoctorService
     public async Task<DoctorDetailResponseDto> GetByIdForPatientAsync(Guid id)
     {
         var doctor = await _doctorRepository.GetByIdAsync(id);
+
         if (doctor is null)
         {
             throw new NotFoundException($"Doctor with ID '{id}' was not found.");
@@ -73,12 +74,14 @@ public class DoctorService : IDoctorService
         }
 
         var doctor = await _doctorRepository.GetByIdAsync(id);
+
         if (doctor is null)
         {
             throw new NotFoundException($"Doctor with ID '{id}' was not found.");
         }
 
         var office = await _officeRepository.GetByIdAsync(doctor.OfficeId);
+
         return doctor.ToAdminResponseDto(office?.Address);
     }
 
@@ -95,12 +98,14 @@ public class DoctorService : IDoctorService
         }
 
         var doctor = await _doctorRepository.GetByIdAsync(id);
+
         if (doctor is null)
         {
             throw new NotFoundException($"Doctor with ID '{id}' was not found.");
         }
 
         var office = await _officeRepository.GetByIdAsync(doctor.OfficeId);
+
         return doctor.ToOwnerResponseDto(office?.Address);
     }
 
@@ -140,6 +145,7 @@ public class DoctorService : IDoctorService
 
         var emailExistsInDoctors = await _doctorRepository.EmailExistsAsync(dto.Email);
         var emailExistsInIdentity = await _registeredEmailRepository.ExistsAsync(dto.Email);
+
         if (emailExistsInDoctors || emailExistsInIdentity)
         {
             throw new ConflictException("User with this email already exists.");
@@ -166,6 +172,7 @@ public class DoctorService : IDoctorService
         await _eventPublisher.PublishDoctorProfileCreatedAsync(entity.Id, entity.Email, entity.FirstName, entity.LastName);
 
         var office = await _officeRepository.GetByIdAsync(entity.OfficeId);
+
         return entity.ToAdminResponseDto(office?.Address);
     }
 
@@ -182,6 +189,7 @@ public class DoctorService : IDoctorService
         }
 
         var doctor = await _doctorRepository.GetByIdAsync(id);
+
         if (doctor is null)
         {
             throw new NotFoundException($"Doctor with ID '{id}' was not found.");
@@ -192,10 +200,12 @@ public class DoctorService : IDoctorService
         await EnsureSpecializationValidAsync(dto.Specialization);
 
         var isEmailChanged = !string.Equals(doctor.Email, dto.Email, StringComparison.OrdinalIgnoreCase);
+
         if (isEmailChanged)
         {
             var emailExistsInDoctors = await _doctorRepository.EmailExistsAsync(dto.Email, excludeDoctorId: id);
             var emailExistsInIdentity = await _registeredEmailRepository.ExistsAsync(dto.Email);
+
             if (emailExistsInDoctors || emailExistsInIdentity)
             {
                 throw new ConflictException("User with this email already exists.");
@@ -216,6 +226,7 @@ public class DoctorService : IDoctorService
         await _doctorRepository.UpdateAsync(doctor);
 
         var office = await _officeRepository.GetByIdAsync(doctor.OfficeId);
+
         return doctor.ToAdminResponseDto(office?.Address);
     }
 
@@ -227,6 +238,7 @@ public class DoctorService : IDoctorService
         }
 
         var doctor = await _doctorRepository.GetByIdAsync(id);
+
         if (doctor is null)
         {
             throw new NotFoundException($"Doctor with ID '{id}' was not found.");
@@ -250,6 +262,7 @@ public class DoctorService : IDoctorService
         if (await _specializationServiceRepository.HasAnyAsync())
         {
             var exists = await _specializationServiceRepository.SpecializationExistsAsync(specialization);
+
             if (!exists)
             {
                 throw new ValidationException("Invalid specialization name.");
@@ -269,17 +282,24 @@ public class DoctorService : IDoctorService
         PersonValidationHelper.ValidateName(firstName, lastName);
 
         if (string.IsNullOrWhiteSpace(specialization))
+        {
             throw new ValidationException("Specialization is required.");
+        }
 
         PersonValidationHelper.ValidateOfficeId(officeId);
         PersonValidationHelper.ValidateEmail(email);
         PersonValidationHelper.ValidateDateOfBirth(dateOfBirth);
 
         var currentYear = DateTime.UtcNow.Year;
+
         if (careerStartYear > currentYear)
+        {
             throw new ValidationException("Career start year cannot be in the future.");
+        }
 
         if (careerStartYear < dateOfBirth.Year + 16)
+        {
             throw new ValidationException("Career start year cannot be earlier than 16 years from date of birth.");
+        }
     }
 }

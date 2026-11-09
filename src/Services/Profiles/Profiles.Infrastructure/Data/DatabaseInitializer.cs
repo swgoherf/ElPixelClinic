@@ -109,6 +109,7 @@ public class DatabaseInitializer
         """;
 
         await connection.ExecuteAsync(sql);
+
         _logger.LogInformation("PostgreSQL schema for Profiles API initialized successfully.");
     }
 }

@@ -23,8 +23,12 @@ public class SpecializationServiceEventsConsumer :
     public async Task Consume(ConsumeContext<SpecializationServiceCreatedEvent> context)
     {
         var msg = context.Message;
-        _logger.LogInformation("Processing SpecializationServiceCreatedEvent for Specialization: {Specialization}, Service: {Service}",
-            msg.SpecializationName, msg.ServiceName);
+
+        _logger.LogInformation(
+            "Processing SpecializationServiceCreatedEvent for Specialization: {Specialization}, Service: {Service}",
+            msg.SpecializationName,
+            msg.ServiceName
+        );
 
         await _specializationServiceRepository.AddAsync(msg.SpecializationName, msg.ServiceName);
     }
@@ -32,8 +36,12 @@ public class SpecializationServiceEventsConsumer :
     public async Task Consume(ConsumeContext<SpecializationServiceDeletedEvent> context)
     {
         var msg = context.Message;
-        _logger.LogInformation("Processing SpecializationServiceDeletedEvent for Specialization: {Specialization}, Service: {Service}",
-            msg.SpecializationName, msg.ServiceName);
+
+        _logger.LogInformation(
+            "Processing SpecializationServiceDeletedEvent for Specialization: {Specialization}, Service: {Service}",
+            msg.SpecializationName,
+            msg.ServiceName
+        );
 
         await _specializationServiceRepository.DeleteAsync(msg.SpecializationName, msg.ServiceName);
     }

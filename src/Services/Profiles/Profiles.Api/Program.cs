@@ -133,6 +133,7 @@ using (var scope = app.Services.CreateScope())
 {
     var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
     try
     {
         await initializer.InitializeAsync();

@@ -50,40 +50,51 @@ public class DoctorRepository : IDoctorRepository
         sqlBuilder.Append("ORDER BY last_name, first_name");
 
         var rows = await connection.QueryAsync<DoctorEntityDbModel>(sqlBuilder.ToString(), parameters);
+
         return rows.Select(x => x.ToEntity());
     }
 
     public async Task<DoctorEntity?> GetByIdAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = "SELECT * FROM doctors WHERE id = @Id";
+
         var row = await connection.QuerySingleOrDefaultAsync<DoctorEntityDbModel>(sql, new { Id = id });
+
         return row?.ToEntity();
     }
 
     public async Task<DoctorEntity?> GetByEmailAsync(string email)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = "SELECT * FROM doctors WHERE LOWER(email) = LOWER(@Email)";
+
         var row = await connection.QuerySingleOrDefaultAsync<DoctorEntityDbModel>(sql, new { Email = email.Trim() });
+
         return row?.ToEntity();
     }
 
     public async Task<bool> EmailExistsAsync(string email, Guid? excludeDoctorId = null)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             SELECT COUNT(1) FROM doctors 
             WHERE LOWER(email) = LOWER(@Email) 
               AND (@ExcludeDoctorId IS NULL OR id != @ExcludeDoctorId)
         """;
+
         var count = await connection.ExecuteScalarAsync<int>(sql, new { Email = email.Trim(), ExcludeDoctorId = excludeDoctorId });
+
         return count > 0;
     }
 
     public async Task AddAsync(DoctorEntity doctor)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             INSERT INTO doctors (
                 id, photo_url, first_name, last_name, middle_name,
@@ -117,6 +128,7 @@ public class DoctorRepository : IDoctorRepository
     public async Task UpdateAsync(DoctorEntity doctor)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             UPDATE doctors SET
                 photo_url = @PhotoUrl,
@@ -151,6 +163,7 @@ public class DoctorRepository : IDoctorRepository
     public async Task UpdateStatusAsync(Guid id, DoctorStatus status)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             UPDATE doctors SET
                 status = @Status,
@@ -169,7 +182,9 @@ public class DoctorRepository : IDoctorRepository
     public async Task DeleteAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = "DELETE FROM doctors WHERE id = @Id";
+
         await connection.ExecuteAsync(sql, new { Id = id });
     }
 
@@ -185,6 +200,7 @@ public class DoctorRepository : IDoctorRepository
                 WHERE is_active = TRUE
                 ORDER BY address
             """;
+
             return await connection.QueryAsync<DoctorOfficeFilterItemDto>(allOfficesSql);
         }
 
@@ -225,6 +241,7 @@ public class DoctorRepository : IDoctorRepository
                 FROM doctors d
                 WHERE d.status = @AtWorkStatus
             """);
+
             var parameters = new DynamicParameters();
             parameters.Add("AtWorkStatus", nameof(DoctorStatus.AtWork));
 
@@ -235,6 +252,7 @@ public class DoctorRepository : IDoctorRepository
             }
 
             sqlBuilder.Append(" ORDER BY d.specialization");
+
             return await connection.QueryAsync<string>(sqlBuilder.ToString(), parameters);
         }
 
@@ -246,6 +264,7 @@ public class DoctorRepository : IDoctorRepository
                 WHERE d.office_id = @OfficeId
                 ORDER BY d.specialization
             """;
+
             return await connection.QueryAsync<string>(sql, new { OfficeId = office });
         }
 
@@ -255,6 +274,7 @@ public class DoctorRepository : IDoctorRepository
             SELECT DISTINCT specialization_name AS specialization FROM specialization_services_replica
             ORDER BY specialization
         """;
+
         return await connection.QueryAsync<string>(allSql);
     }
 

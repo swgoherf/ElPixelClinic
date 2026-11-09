@@ -22,6 +22,7 @@ public class ReceptionistsController : ControllerBase
     public async Task<ActionResult<IEnumerable<ReceptionistListItemDto>>> GetReceptionists()
     {
         var receptionists = await _receptionistService.GetListAsync();
+
         return Ok(receptionists);
     }
 
@@ -29,6 +30,7 @@ public class ReceptionistsController : ControllerBase
     public async Task<ActionResult<ReceptionistResponseDto>> GetReceptionistById(Guid id)
     {
         var receptionist = await _receptionistService.GetByIdAsync(id);
+
         return Ok(receptionist);
     }
 
@@ -36,6 +38,7 @@ public class ReceptionistsController : ControllerBase
     public async Task<ActionResult<ReceptionistResponseDto>> CreateReceptionist([FromBody] CreateReceptionistDto dto)
     {
         var created = await _receptionistService.CreateAsync(dto);
+
         return CreatedAtAction(nameof(GetReceptionistById), new { id = created.Id }, created);
     }
 
@@ -43,6 +46,7 @@ public class ReceptionistsController : ControllerBase
     public async Task<ActionResult<ReceptionistResponseDto>> UpdateReceptionist(Guid id, [FromBody] UpdateReceptionistDto dto)
     {
         var updated = await _receptionistService.UpdateAsync(id, dto);
+
         return Ok(updated);
     }
 
@@ -50,6 +54,7 @@ public class ReceptionistsController : ControllerBase
     public async Task<IActionResult> DeleteReceptionist(Guid id)
     {
         await _receptionistService.DeleteAsync(id);
+
         return NoContent();
     }
 }

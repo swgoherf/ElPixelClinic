@@ -59,12 +59,14 @@ public class ReceptionistService : IReceptionistService
         }
 
         var receptionist = await _receptionistRepository.GetByIdAsync(id);
+
         if (receptionist is null)
         {
             throw new NotFoundException($"Receptionist with ID '{id}' was not found.");
         }
 
         var office = await _officeRepository.GetByIdAsync(receptionist.OfficeId);
+
         return receptionist.ToResponseDto(office?.Address);
     }
 
@@ -80,6 +82,7 @@ public class ReceptionistService : IReceptionistService
 
         var emailExistsInReceptionists = await _receptionistRepository.EmailExistsAsync(dto.Email);
         var emailExistsInIdentity = await _registeredEmailRepository.ExistsAsync(dto.Email);
+
         if (emailExistsInReceptionists || emailExistsInIdentity)
         {
             throw new ConflictException("User with this email already exists.");
@@ -102,6 +105,7 @@ public class ReceptionistService : IReceptionistService
         await _eventPublisher.PublishReceptionistProfileCreatedAsync(entity.Id, entity.Email, entity.FirstName, entity.LastName);
 
         var office = await _officeRepository.GetByIdAsync(entity.OfficeId);
+
         return entity.ToResponseDto(office?.Address);
     }
 
@@ -118,6 +122,7 @@ public class ReceptionistService : IReceptionistService
         }
 
         var receptionist = await _receptionistRepository.GetByIdAsync(id);
+
         if (receptionist is null)
         {
             throw new NotFoundException($"Receptionist with ID '{id}' was not found.");
@@ -138,6 +143,7 @@ public class ReceptionistService : IReceptionistService
         await _receptionistRepository.UpdateAsync(receptionist);
 
         var office = await _officeRepository.GetByIdAsync(receptionist.OfficeId);
+
         return receptionist.ToResponseDto(office?.Address);
     }
 
@@ -149,6 +155,7 @@ public class ReceptionistService : IReceptionistService
         }
 
         var receptionist = await _receptionistRepository.GetByIdAsync(id);
+
         if (receptionist is null)
         {
             throw new NotFoundException($"Receptionist with ID '{id}' was not found.");

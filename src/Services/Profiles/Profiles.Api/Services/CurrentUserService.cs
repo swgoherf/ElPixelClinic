@@ -41,9 +41,15 @@ public class CurrentUserService : ICurrentUserService
 
     public bool IsInRole(string role)
     {
-        if (User is null) return false;
+        if (User is null)
+        {
+            return false;
+        }
 
-        if (User.IsInRole(role)) return true;
+        if (User.IsInRole(role))
+        {
+            return true;
+        }
 
         var roles = User.FindAll(ClaimTypes.Role)
             .Concat(User.FindAll("role"))

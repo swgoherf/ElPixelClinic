@@ -22,6 +22,7 @@ public class PatientsController : ControllerBase
     public async Task<ActionResult<IEnumerable<PatientListItemDto>>> GetPatients([FromQuery] string? fullName)
     {
         var patients = await _patientService.GetListAsync(fullName);
+
         return Ok(patients);
     }
 
@@ -30,6 +31,7 @@ public class PatientsController : ControllerBase
     public async Task<ActionResult<PatientFullProfileDto>> GetPatientById(Guid id)
     {
         var profile = await _patientService.GetByIdAsync(id);
+
         return Ok(profile);
     }
 
@@ -38,6 +40,7 @@ public class PatientsController : ControllerBase
     public async Task<ActionResult<PatientPersonalInfoDto>> GetPatientPersonalInfo(Guid id)
     {
         var personalInfo = await _patientService.GetPersonalInfoAsync(id);
+
         return Ok(personalInfo);
     }
 
@@ -46,6 +49,7 @@ public class PatientsController : ControllerBase
     public async Task<ActionResult<IEnumerable<PatientAppointmentResultDto>>> GetPatientAppointmentResults(Guid id)
     {
         var results = await _patientService.GetAppointmentResultsAsync(id);
+
         return Ok(results);
     }
 
@@ -54,6 +58,7 @@ public class PatientsController : ControllerBase
     public async Task<ActionResult<PatientMatchCheckResultDto>> CreateSelf([FromBody] CreatePatientSelfDto dto)
     {
         var result = await _patientService.CreateSelfAsync(dto);
+
         if (result.HasMatch)
         {
             return Ok(result);
@@ -71,6 +76,7 @@ public class PatientsController : ControllerBase
     public async Task<ActionResult<PatientPersonalInfoDto>> ForceCreateSelf([FromBody] CreatePatientSelfDto dto)
     {
         var profile = await _patientService.ForceCreateSelfAsync(dto);
+
         return CreatedAtAction(nameof(GetPatientPersonalInfo), new { id = profile.Id }, profile);
     }
 
@@ -79,6 +85,7 @@ public class PatientsController : ControllerBase
     public async Task<ActionResult<PatientPersonalInfoDto>> ConfirmMatch(Guid id)
     {
         var updatedProfile = await _patientService.ConfirmMatchAsync(id);
+
         return Ok(updatedProfile);
     }
 
@@ -87,6 +94,7 @@ public class PatientsController : ControllerBase
     public async Task<ActionResult<PatientPersonalInfoDto>> CreateByAdmin([FromBody] CreatePatientByAdminDto dto)
     {
         var profile = await _patientService.CreateByAdminAsync(dto);
+
         return CreatedAtAction(nameof(GetPatientPersonalInfo), new { id = profile.Id }, profile);
     }
 
@@ -95,6 +103,7 @@ public class PatientsController : ControllerBase
     public async Task<ActionResult<PatientPersonalInfoDto>> UpdatePatient(Guid id, [FromBody] UpdatePatientDto dto)
     {
         var updatedProfile = await _patientService.UpdateAsync(id, dto);
+
         return Ok(updatedProfile);
     }
 
@@ -103,6 +112,7 @@ public class PatientsController : ControllerBase
     public async Task<IActionResult> DeletePatient(Guid id)
     {
         await _patientService.DeleteAsync(id);
+
         return NoContent();
     }
 }

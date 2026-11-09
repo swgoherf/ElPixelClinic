@@ -32,6 +32,7 @@ public class DoctorsController : ControllerBase
         );
 
         var doctors = await _doctorService.GetCardsAsync(filters);
+
         return Ok(doctors);
     }
 
@@ -51,6 +52,7 @@ public class DoctorsController : ControllerBase
         );
 
         var doctors = await _doctorService.GetAdminListAsync(filters);
+
         return Ok(doctors);
     }
 
@@ -62,6 +64,7 @@ public class DoctorsController : ControllerBase
         [FromQuery] bool atWorkOnly = false)
     {
         var offices = await _doctorService.GetOfficesFilterAsync(specialization, atWorkOnly);
+
         return Ok(offices);
     }
 
@@ -73,6 +76,7 @@ public class DoctorsController : ControllerBase
         [FromQuery] bool atWorkOnly = false)
     {
         var specializations = await _doctorService.GetSpecializationsFilterAsync(officeId, atWorkOnly);
+
         return Ok(specializations);
     }
 
@@ -81,6 +85,7 @@ public class DoctorsController : ControllerBase
     public async Task<ActionResult<DoctorDetailResponseDto>> GetDoctorById(Guid id)
     {
         var doctor = await _doctorService.GetByIdForPatientAsync(id);
+
         return Ok(doctor);
     }
 
@@ -89,6 +94,7 @@ public class DoctorsController : ControllerBase
     public async Task<ActionResult<DoctorAdminResponseDto>> GetDoctorByIdForAdmin(Guid id)
     {
         var doctor = await _doctorService.GetByIdForAdminAsync(id);
+
         return Ok(doctor);
     }
 
@@ -97,6 +103,7 @@ public class DoctorsController : ControllerBase
     public async Task<ActionResult<DoctorOwnerResponseDto>> GetDoctorByIdForOwner(Guid id)
     {
         var doctor = await _doctorService.GetByIdForOwnerAsync(id);
+
         return Ok(doctor);
     }
 
@@ -105,6 +112,7 @@ public class DoctorsController : ControllerBase
     public async Task<ActionResult<DoctorAdminResponseDto>> CreateDoctor([FromBody] CreateDoctorDto dto)
     {
         var created = await _doctorService.CreateAsync(dto);
+
         return CreatedAtAction(nameof(GetDoctorByIdForAdmin), new { id = created.Id }, created);
     }
 
@@ -113,6 +121,7 @@ public class DoctorsController : ControllerBase
     public async Task<ActionResult<DoctorAdminResponseDto>> UpdateDoctor(Guid id, [FromBody] UpdateDoctorDto dto)
     {
         var updated = await _doctorService.UpdateAsync(id, dto);
+
         return Ok(updated);
     }
 
@@ -121,6 +130,7 @@ public class DoctorsController : ControllerBase
     public async Task<IActionResult> ChangeDoctorStatus(Guid id, [FromBody] ChangeDoctorStatusDto dto)
     {
         await _doctorService.ChangeStatusAsync(id, dto.Status);
+
         return NoContent();
     }
 }

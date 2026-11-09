@@ -21,8 +21,14 @@ public class AppointmentStatusChangedConsumer : IConsumer<AppointmentStatusChang
     public async Task Consume(ConsumeContext<AppointmentStatusChangedEvent> context)
     {
         var msg = context.Message;
-        _logger.LogInformation("Processing AppointmentStatusChangedEvent for Appointment ID: {AppointmentId}, Doctor: {DoctorId}, Patient: {PatientId}, Status: {Status}",
-            msg.AppointmentId, msg.DoctorId, msg.PatientId, msg.Status);
+
+        _logger.LogInformation(
+            "Processing AppointmentStatusChangedEvent for Appointment ID: {AppointmentId}, Doctor: {DoctorId}, Patient: {PatientId}, Status: {Status}",
+            msg.AppointmentId,
+            msg.DoctorId,
+            msg.PatientId,
+            msg.Status
+        );
 
         if (string.Equals(msg.Status, "Approved", StringComparison.OrdinalIgnoreCase))
         {

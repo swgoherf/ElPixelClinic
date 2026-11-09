@@ -31,9 +31,11 @@ public class PatientService : IPatientService
         ValidateSelfPatient(dto);
 
         var unlinkedProfiles = await _patientRepository.GetUnlinkedAsync();
+
         foreach (var candidate in unlinkedProfiles)
         {
             var score = CalculateMatchScore(dto, candidate);
+
             if (score >= 13)
             {
                 return new PatientMatchCheckResultDto(
@@ -88,12 +90,14 @@ public class PatientService : IPatientService
         };
 
         await _patientRepository.AddAsync(entity);
+
         return entity.ToPersonalInfoDto();
     }
 
     public async Task<PatientPersonalInfoDto> ConfirmMatchAsync(Guid existingPatientId)
     {
         var patient = await _patientRepository.GetByIdAsync(existingPatientId);
+
         if (patient is null)
         {
             throw new NotFoundException($"Patient with ID '{existingPatientId}' was not found.");
@@ -101,6 +105,7 @@ public class PatientService : IPatientService
 
         patient.IsLinkedToAccount = true;
         patient.UpdatedAt = DateTime.UtcNow;
+
         await _patientRepository.MarkAsLinkedAsync(existingPatientId);
 
         return patient.ToPersonalInfoDto();
@@ -129,12 +134,14 @@ public class PatientService : IPatientService
         };
 
         await _patientRepository.AddAsync(entity);
+
         return entity.ToPersonalInfoDto();
     }
 
     public async Task<PatientPersonalInfoDto> UpdateAsync(Guid id, UpdatePatientDto dto)
     {
         var patient = await _patientRepository.GetByIdAsync(id);
+
         if (patient is null)
         {
             throw new NotFoundException($"Patient with ID '{id}' was not found.");
@@ -156,12 +163,14 @@ public class PatientService : IPatientService
         patient.UpdatedAt = DateTime.UtcNow;
 
         await _patientRepository.UpdateAsync(patient);
+
         return patient.ToPersonalInfoDto();
     }
 
     public async Task<PatientPersonalInfoDto> GetPersonalInfoAsync(Guid id)
     {
         var patient = await _patientRepository.GetByIdAsync(id);
+
         if (patient is null)
         {
             throw new NotFoundException($"Patient with ID '{id}' was not found.");
@@ -175,6 +184,7 @@ public class PatientService : IPatientService
     public async Task<IEnumerable<PatientAppointmentResultDto>> GetAppointmentResultsAsync(Guid id)
     {
         var patient = await _patientRepository.GetByIdAsync(id);
+
         if (patient is null)
         {
             throw new NotFoundException($"Patient with ID '{id}' was not found.");
@@ -194,6 +204,7 @@ public class PatientService : IPatientService
         {
             var doctorId = _currentUserService.GetRequiredUserId();
             var hasAccess = await _accessRepository.HasAccessAsync(doctorId, id);
+
             if (!hasAccess)
             {
                 throw new ForbiddenException("Access denied. Doctor must have an approved appointment with this patient.");
@@ -235,6 +246,7 @@ public class PatientService : IPatientService
         }
 
         var patients = await _patientRepository.GetAllAsync(fullNameSearch);
+
         return patients.Select(patient => patient.ToListItemDto());
     }
 
@@ -246,6 +258,7 @@ public class PatientService : IPatientService
         }
 
         var patient = await _patientRepository.GetByIdAsync(id);
+
         if (patient is null)
         {
             throw new NotFoundException($"Patient with ID '{id}' was not found.");
@@ -273,6 +286,7 @@ public class PatientService : IPatientService
             {
                 throw new ForbiddenException("Patients are only allowed to view their own profile.");
             }
+
             return;
         }
 
@@ -280,10 +294,12 @@ public class PatientService : IPatientService
         {
             var doctorId = _currentUserService.GetRequiredUserId();
             var hasAccess = await _accessRepository.HasAccessAsync(doctorId, patientId);
+
             if (!hasAccess)
             {
                 throw new ForbiddenException("Access denied. Doctor must have an approved appointment with this patient.");
             }
+
             return;
         }
 
@@ -326,10 +342,14 @@ public class PatientService : IPatientService
         ValidateCommonFields(dto.FirstName, dto.LastName, dto.DateOfBirth);
 
         if (string.IsNullOrWhiteSpace(dto.PhoneNumber))
+        {
             throw new ValidationException("Phone number is required.");
+        }
 
         if (!dto.PhoneNumber.Trim().StartsWith("+"))
+        {
             throw new ValidationException("Phone number must start with '+'.");
+        }
     }
 
     private static void ValidateCommonFields(string firstName, string lastName, DateOnly dateOfBirth)

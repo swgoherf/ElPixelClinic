@@ -12,6 +12,7 @@ public static class DoctorMappingExtensions
     public static int CalculateExperience(int careerStartYear)
     {
         var currentYear = DateTime.UtcNow.Year;
+
         return careerStartYear <= currentYear ? currentYear - careerStartYear + 1 : 0;
     }
 

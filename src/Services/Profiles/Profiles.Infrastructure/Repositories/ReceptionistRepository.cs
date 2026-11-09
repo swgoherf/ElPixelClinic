@@ -16,42 +16,55 @@ public class ReceptionistRepository : IReceptionistRepository
     public async Task<IEnumerable<ReceptionistEntity>> GetAllAsync()
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = "SELECT * FROM receptionists ORDER BY last_name, first_name";
+
         var rows = await connection.QueryAsync<ReceptionistEntityDbModel>(sql);
+
         return rows.Select(x => x.ToEntity());
     }
 
     public async Task<ReceptionistEntity?> GetByIdAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = "SELECT * FROM receptionists WHERE id = @Id";
+
         var row = await connection.QuerySingleOrDefaultAsync<ReceptionistEntityDbModel>(sql, new { Id = id });
+
         return row?.ToEntity();
     }
 
     public async Task<ReceptionistEntity?> GetByEmailAsync(string email)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = "SELECT * FROM receptionists WHERE LOWER(email) = LOWER(@Email)";
+
         var row = await connection.QuerySingleOrDefaultAsync<ReceptionistEntityDbModel>(sql, new { Email = email.Trim() });
+
         return row?.ToEntity();
     }
 
     public async Task<bool> EmailExistsAsync(string email, Guid? excludeReceptionistId = null)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             SELECT COUNT(1) FROM receptionists 
             WHERE LOWER(email) = LOWER(@Email) 
               AND (@ExcludeId IS NULL OR id != @ExcludeId)
         """;
+
         var count = await connection.ExecuteScalarAsync<int>(sql, new { Email = email.Trim(), ExcludeId = excludeReceptionistId });
+
         return count > 0;
     }
 
     public async Task AddAsync(ReceptionistEntity receptionist)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             INSERT INTO receptionists (
                 id, photo_url, first_name, last_name, middle_name,
@@ -79,6 +92,7 @@ public class ReceptionistRepository : IReceptionistRepository
     public async Task UpdateAsync(ReceptionistEntity receptionist)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             UPDATE receptionists SET
                 photo_url = @PhotoUrl,
@@ -105,7 +119,9 @@ public class ReceptionistRepository : IReceptionistRepository
     public async Task DeleteAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = "DELETE FROM receptionists WHERE id = @Id";
+
         await connection.ExecuteAsync(sql, new { Id = id });
     }
 

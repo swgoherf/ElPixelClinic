@@ -25,6 +25,7 @@ public class OfficeEventsConsumer :
     public async Task Consume(ConsumeContext<OfficeCreatedOrUpdatedEvent> context)
     {
         var msg = context.Message;
+
         _logger.LogInformation("Processing OfficeCreatedOrUpdatedEvent for Office ID: {OfficeId}, Address: {Address}", msg.Id, msg.Address);
 
         await _officeRepository.UpsertAsync(new OfficeReplicaEntity
@@ -38,6 +39,7 @@ public class OfficeEventsConsumer :
     public async Task Consume(ConsumeContext<OfficeStatusChangedEvent> context)
     {
         var msg = context.Message;
+
         _logger.LogInformation("Processing OfficeStatusChangedEvent for Office ID: {OfficeId}, IsActive: {IsActive}", msg.OfficeId, msg.IsActive);
 
         await _officeRepository.UpdateStatusAsync(msg.OfficeId, msg.IsActive);
@@ -46,6 +48,7 @@ public class OfficeEventsConsumer :
     public async Task Consume(ConsumeContext<OfficeDeletedEvent> context)
     {
         var msg = context.Message;
+
         _logger.LogInformation("Processing OfficeDeletedEvent for Office ID: {OfficeId}", msg.Id);
 
         await _officeRepository.DeleteAsync(msg.Id);

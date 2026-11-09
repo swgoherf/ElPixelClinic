@@ -15,17 +15,21 @@ public class DoctorPatientAccessRepository : IDoctorPatientAccessRepository
     public async Task<bool> HasAccessAsync(Guid doctorId, Guid patientId)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             SELECT COUNT(1) FROM doctor_patient_access_replica
             WHERE doctor_id = @DoctorId AND patient_id = @PatientId
         """;
+
         var count = await connection.ExecuteScalarAsync<int>(sql, new { DoctorId = doctorId, PatientId = patientId });
+
         return count > 0;
     }
 
     public async Task GrantAccessAsync(Guid appointmentId, Guid doctorId, Guid patientId)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             INSERT INTO doctor_patient_access_replica (appointment_id, doctor_id, patient_id)
             VALUES (@AppointmentId, @DoctorId, @PatientId)
@@ -33,6 +37,7 @@ public class DoctorPatientAccessRepository : IDoctorPatientAccessRepository
                 doctor_id = EXCLUDED.doctor_id,
                 patient_id = EXCLUDED.patient_id;
         """;
+
         await connection.ExecuteAsync(sql, new
         {
             AppointmentId = appointmentId,
@@ -44,10 +49,12 @@ public class DoctorPatientAccessRepository : IDoctorPatientAccessRepository
     public async Task RevokeAccessAsync(Guid appointmentId)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             DELETE FROM doctor_patient_access_replica
             WHERE appointment_id = @AppointmentId
         """;
+
         await connection.ExecuteAsync(sql, new { AppointmentId = appointmentId });
     }
 }

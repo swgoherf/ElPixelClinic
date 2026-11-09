@@ -17,6 +17,7 @@ public class PatientRepository : IPatientRepository
     public async Task<IEnumerable<PatientEntity>> GetAllAsync(string? fullName = null)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         var sqlBuilder = new StringBuilder("SELECT * FROM patients WHERE 1=1 ");
         var parameters = new DynamicParameters();
 
@@ -29,28 +30,36 @@ public class PatientRepository : IPatientRepository
         sqlBuilder.Append("ORDER BY last_name, first_name");
 
         var rows = await connection.QueryAsync<PatientEntityDbModel>(sqlBuilder.ToString(), parameters);
+
         return rows.Select(x => x.ToEntity());
     }
 
     public async Task<IEnumerable<PatientEntity>> GetUnlinkedAsync()
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = "SELECT * FROM patients WHERE is_linked_to_account = FALSE";
+
         var rows = await connection.QueryAsync<PatientEntityDbModel>(sql);
+
         return rows.Select(x => x.ToEntity());
     }
 
     public async Task<PatientEntity?> GetByIdAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = "SELECT * FROM patients WHERE id = @Id";
+
         var row = await connection.QuerySingleOrDefaultAsync<PatientEntityDbModel>(sql, new { Id = id });
+
         return row?.ToEntity();
     }
 
     public async Task AddAsync(PatientEntity patient)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             INSERT INTO patients (
                 id, photo_url, first_name, last_name, middle_name,
@@ -81,6 +90,7 @@ public class PatientRepository : IPatientRepository
     public async Task UpdateAsync(PatientEntity patient)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             UPDATE patients SET
                 photo_url = @PhotoUrl,
@@ -109,6 +119,7 @@ public class PatientRepository : IPatientRepository
     public async Task MarkAsLinkedAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         const string sql = """
             UPDATE patients SET
                 is_linked_to_account = TRUE,
@@ -122,18 +133,22 @@ public class PatientRepository : IPatientRepository
     public async Task DeleteAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();
+
         if (connection.State != System.Data.ConnectionState.Open)
         {
             connection.Open();
         }
 
         using var transaction = connection.BeginTransaction();
+
         try
         {
             const string deleteAccessSql = "DELETE FROM doctor_patient_access_replica WHERE patient_id = @Id";
+
             await connection.ExecuteAsync(deleteAccessSql, new { Id = id }, transaction);
 
             const string deletePatientSql = "DELETE FROM patients WHERE id = @Id";
+
             await connection.ExecuteAsync(deletePatientSql, new { Id = id }, transaction);
 
             transaction.Commit();

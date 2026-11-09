@@ -23,6 +23,7 @@ public class UserEmailEventsConsumer :
     public async Task Consume(ConsumeContext<UserEmailRegisteredEvent> context)
     {
         var msg = context.Message;
+
         _logger.LogInformation("Processing UserEmailRegisteredEvent for User ID: {UserId}, Email: {Email}", msg.UserId, msg.Email);
 
         await _registeredEmailRepository.UpsertAsync(msg.Email, msg.UserId);
@@ -31,6 +32,7 @@ public class UserEmailEventsConsumer :
     public async Task Consume(ConsumeContext<UserEmailUnregisteredEvent> context)
     {
         var msg = context.Message;
+
         _logger.LogInformation("Processing UserEmailUnregisteredEvent for User ID: {UserId}, Email: {Email}", msg.UserId, msg.Email);
 
         await _registeredEmailRepository.DeleteAsync(msg.Email);
