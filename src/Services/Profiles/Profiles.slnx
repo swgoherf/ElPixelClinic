@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="../../Common/ElPixelClinic.Contracts/ElPixelClinic.Contracts.csproj" />
+  <Project Path="Profiles.Api/Profiles.Api.csproj" />
+  <Project Path="Profiles.Application/Profiles.Application.csproj" />
+  <Project Path="Profiles.Domain/Profiles.Domain.csproj" />
+  <Project Path="Profiles.Infrastructure/Profiles.Infrastructure.csproj" />
+</Solution>

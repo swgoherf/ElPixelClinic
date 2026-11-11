@@ -1,0 +1,46 @@
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
+using Profiles.Application.Common.Exceptions;
+
+namespace Profiles.Api.Exceptions;
+
+public class GlobalExceptionHandler : IExceptionHandler
+{
+    private readonly ILogger<GlobalExceptionHandler> _logger;
+
+    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
+    {
+        _logger = logger;
+    }
+
+    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+    {
+        _logger.LogError(exception, "Unhandled exception occurred. TraceId: {TraceId}", httpContext.TraceIdentifier);
+
+        var (statusCode, title, detail) = exception switch
+        {
+            NotFoundException notFound => (StatusCodes.Status404NotFound, "Not Found", notFound.Message),
+            ValidationException validation => (StatusCodes.Status400BadRequest, "Bad Request", validation.Message),
+            UnauthorizedException unauthorized => (StatusCodes.Status401Unauthorized, "Unauthorized", unauthorized.Message),
+            ForbiddenException forbidden => (StatusCodes.Status403Forbidden, "Forbidden", forbidden.Message),
+            ConflictException conflict => (StatusCodes.Status409Conflict, "Conflict", conflict.Message),
+            _ => (StatusCodes.Status500InternalServerError, "Internal Server Error", "An unexpected error occurred. Please try again later.")
+        };
+
+        var problem = new ProblemDetails
+        {
+            Status = statusCode,
+            Title = title,
+            Detail = detail,
+            Instance = httpContext.Request.Path
+        };
+
+        problem.Extensions["traceId"] = httpContext.TraceIdentifier;
+
+        httpContext.Response.StatusCode = statusCode;
+
+        await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken);
+
+        return true;
+    }
+}

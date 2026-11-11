@@ -10,10 +10,14 @@ namespace Office.Application.Services;
 public class OfficeService : IOfficeService
 {
     private readonly IOfficeRepository _officeRepository;
+    private readonly IOfficeEventPublisher _eventPublisher;
 
-    public OfficeService(IOfficeRepository officeRepository)
+    public OfficeService(
+        IOfficeRepository officeRepository,
+        IOfficeEventPublisher eventPublisher)
     {
         _officeRepository = officeRepository;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<IEnumerable<OfficeResponseDto>> GetAllAsync()
@@ -50,6 +54,9 @@ public class OfficeService : IOfficeService
 
         await _officeRepository.UpdateAsync(office);
 
+        var formattedAddress = $"{office.Address.City}, {office.Address.Street}, {office.Address.HouseNumber}";
+        await _eventPublisher.PublishOfficeCreatedOrUpdatedAsync(office.Id, formattedAddress, office.IsActive);
+
         return office.ToResponseDto();
     }
 
@@ -64,7 +71,25 @@ public class OfficeService : IOfficeService
 
         await _officeRepository.AddAsync(entity);
 
+        var formattedAddress = $"{entity.Address.City}, {entity.Address.Street}, {entity.Address.HouseNumber}";
+        await _eventPublisher.PublishOfficeCreatedOrUpdatedAsync(entity.Id, formattedAddress, entity.IsActive);
+
         return entity.ToResponseDto();
+    }
+
+    public async Task ChangeStatusAsync(Guid id, bool isActive)
+    {
+        var office = await _officeRepository.GetByIdAsync(id);
+
+        if (office is null)
+        {
+            throw new NotFoundException($"Office with ID '{id}' was not found.");
+        }
+
+        office.IsActive = isActive;
+        await _officeRepository.UpdateAsync(office);
+
+        await _eventPublisher.PublishOfficeStatusChangedAsync(id, isActive);
     }
 
     public async Task DeleteAsync(Guid id)
@@ -77,5 +102,7 @@ public class OfficeService : IOfficeService
         }
 
         await _officeRepository.DeleteAsync(office);
+
+        await _eventPublisher.PublishOfficeDeletedAsync(id);
     }
 }
