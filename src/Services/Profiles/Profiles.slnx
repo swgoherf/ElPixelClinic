@@ -4,4 +4,5 @@
   <Project Path="Profiles.Application/Profiles.Application.csproj" />
   <Project Path="Profiles.Domain/Profiles.Domain.csproj" />
   <Project Path="Profiles.Infrastructure/Profiles.Infrastructure.csproj" />
+  <Project Path="../../../tests/Profiles.Api.Tests/Profiles.Api.Tests.csproj" />
 </Solution>
