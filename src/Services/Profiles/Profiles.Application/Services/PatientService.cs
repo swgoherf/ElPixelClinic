@@ -30,7 +30,7 @@ public class PatientService : IPatientService
     {
         ValidateSelfPatient(dto);
 
-        var unlinkedProfiles = await _patientRepository.GetUnlinkedAsync();
+        var unlinkedProfiles = await _patientRepository.FindUnlinkedCandidatesAsync(dto.FirstName, dto.LastName, dto.DateOfBirth);
 
         foreach (var candidate in unlinkedProfiles)
         {
@@ -47,9 +47,12 @@ public class PatientService : IPatientService
             }
         }
 
+        var currentUserId = _currentUserService.UserId ?? Guid.NewGuid();
+
         var newEntity = new PatientEntity
         {
-            Id = _currentUserService.UserId ?? Guid.NewGuid(),
+            Id = currentUserId,
+            AccountId = currentUserId,
             PhotoUrl = dto.PhotoUrl,
             FirstName = dto.FirstName.Trim(),
             LastName = dto.LastName.Trim(),
@@ -75,9 +78,12 @@ public class PatientService : IPatientService
     {
         ValidateSelfPatient(dto);
 
+        var currentUserId = _currentUserService.UserId ?? Guid.NewGuid();
+
         var entity = new PatientEntity
         {
-            Id = _currentUserService.UserId ?? Guid.NewGuid(),
+            Id = currentUserId,
+            AccountId = currentUserId,
             PhotoUrl = dto.PhotoUrl,
             FirstName = dto.FirstName.Trim(),
             LastName = dto.LastName.Trim(),
@@ -96,6 +102,8 @@ public class PatientService : IPatientService
 
     public async Task<PatientPersonalInfoDto> ConfirmMatchAsync(Guid existingPatientId)
     {
+        var currentUserId = _currentUserService.GetRequiredUserId();
+
         var patient = await _patientRepository.GetByIdAsync(existingPatientId);
 
         if (patient is null)
@@ -103,10 +111,16 @@ public class PatientService : IPatientService
             throw new NotFoundException($"Patient with ID '{existingPatientId}' was not found.");
         }
 
+        if (patient.IsLinkedToAccount && patient.AccountId.HasValue && patient.AccountId != currentUserId)
+        {
+            throw new ConflictException("Patient profile is already linked to another account.");
+        }
+
+        patient.AccountId = currentUserId;
         patient.IsLinkedToAccount = true;
         patient.UpdatedAt = DateTime.UtcNow;
 
-        await _patientRepository.MarkAsLinkedAsync(existingPatientId);
+        await _patientRepository.LinkToAccountAsync(existingPatientId, currentUserId);
 
         return patient.ToPersonalInfoDto();
     }
@@ -147,7 +161,7 @@ public class PatientService : IPatientService
             throw new NotFoundException($"Patient with ID '{id}' was not found.");
         }
 
-        if (!_currentUserService.IsReceptionistOrAdmin && _currentUserService.UserId != id)
+        if (!_currentUserService.IsReceptionistOrAdmin && !IsPatientOwner(patient))
         {
             throw new ForbiddenException("You do not have permission to edit this profile.");
         }
@@ -176,7 +190,7 @@ public class PatientService : IPatientService
             throw new NotFoundException($"Patient with ID '{id}' was not found.");
         }
 
-        await EnsureUserCanAccessPersonalInfoAsync(id);
+        await EnsureUserCanAccessPersonalInfoAsync(patient);
 
         return patient.ToPersonalInfoDto();
     }
@@ -212,7 +226,7 @@ public class PatientService : IPatientService
         }
         else if (_currentUserService.IsPatient)
         {
-            if (_currentUserService.UserId != id)
+            if (!IsPatientOwner(patient))
             {
                 throw new ForbiddenException("Patients are only allowed to view their own appointment results.");
             }
@@ -268,7 +282,7 @@ public class PatientService : IPatientService
         await _eventPublisher.PublishPatientProfileDeletedAsync(id);
     }
 
-    private async Task EnsureUserCanAccessPersonalInfoAsync(Guid patientId)
+    private async Task EnsureUserCanAccessPersonalInfoAsync(PatientEntity patient)
     {
         if (!_currentUserService.IsAuthenticated)
         {
@@ -282,7 +296,7 @@ public class PatientService : IPatientService
 
         if (_currentUserService.IsPatient)
         {
-            if (_currentUserService.UserId != patientId)
+            if (!IsPatientOwner(patient))
             {
                 throw new ForbiddenException("Patients are only allowed to view their own profile.");
             }
@@ -293,7 +307,7 @@ public class PatientService : IPatientService
         if (_currentUserService.IsDoctor)
         {
             var doctorId = _currentUserService.GetRequiredUserId();
-            var hasAccess = await _accessRepository.HasAccessAsync(doctorId, patientId);
+            var hasAccess = await _accessRepository.HasAccessAsync(doctorId, patient.Id);
 
             if (!hasAccess)
             {
@@ -304,6 +318,14 @@ public class PatientService : IPatientService
         }
 
         throw new ForbiddenException("Access denied.");
+    }
+
+    private bool IsPatientOwner(PatientEntity patient)
+    {
+        var currentUserId = _currentUserService.UserId;
+        if (currentUserId is null) return false;
+
+        return patient.AccountId == currentUserId || patient.Id == currentUserId;
     }
 
     private static int CalculateMatchScore(CreatePatientSelfDto dto, PatientEntity candidate)

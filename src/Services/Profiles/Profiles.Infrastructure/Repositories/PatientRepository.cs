@@ -45,6 +45,32 @@ public class PatientRepository : IPatientRepository
         return rows.Select(x => x.ToEntity());
     }
 
+    public async Task<IEnumerable<PatientEntity>> FindUnlinkedCandidatesAsync(string firstName, string lastName, DateOnly dateOfBirth)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        const string sql = """
+            SELECT * FROM patients 
+            WHERE is_linked_to_account = FALSE
+              AND (
+                  LOWER(last_name) = LOWER(@LastName)
+                  OR date_of_birth = @DateOfBirth
+                  OR LOWER(first_name) = LOWER(@FirstName)
+              )
+            ORDER BY last_name, first_name
+            LIMIT 50
+        """;
+
+        var rows = await connection.QueryAsync<PatientEntityDbModel>(sql, new
+        {
+            FirstName = firstName.Trim(),
+            LastName = lastName.Trim(),
+            DateOfBirth = dateOfBirth.ToDateTime(TimeOnly.MinValue)
+        });
+
+        return rows.Select(x => x.ToEntity());
+    }
+
     public async Task<PatientEntity?> GetByIdAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -56,17 +82,28 @@ public class PatientRepository : IPatientRepository
         return row?.ToEntity();
     }
 
+    public async Task<PatientEntity?> GetByAccountIdAsync(Guid accountId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        const string sql = "SELECT * FROM patients WHERE account_id = @AccountId";
+
+        var row = await connection.QuerySingleOrDefaultAsync<PatientEntityDbModel>(sql, new { AccountId = accountId });
+
+        return row?.ToEntity();
+    }
+
     public async Task AddAsync(PatientEntity patient)
     {
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = """
             INSERT INTO patients (
-                id, photo_url, first_name, last_name, middle_name,
+                id, account_id, photo_url, first_name, last_name, middle_name,
                 phone_number, date_of_birth, is_linked_to_account,
                 created_at, updated_at
             ) VALUES (
-                @Id, @PhotoUrl, @FirstName, @LastName, @MiddleName,
+                @Id, @AccountId, @PhotoUrl, @FirstName, @LastName, @MiddleName,
                 @PhoneNumber, @DateOfBirth, @IsLinkedToAccount,
                 @CreatedAt, @UpdatedAt
             )
@@ -75,6 +112,7 @@ public class PatientRepository : IPatientRepository
         await connection.ExecuteAsync(sql, new
         {
             patient.Id,
+            patient.AccountId,
             patient.PhotoUrl,
             patient.FirstName,
             patient.LastName,
@@ -93,6 +131,7 @@ public class PatientRepository : IPatientRepository
 
         const string sql = """
             UPDATE patients SET
+                account_id = @AccountId,
                 photo_url = @PhotoUrl,
                 first_name = @FirstName,
                 last_name = @LastName,
@@ -106,6 +145,7 @@ public class PatientRepository : IPatientRepository
         await connection.ExecuteAsync(sql, new
         {
             patient.Id,
+            patient.AccountId,
             patient.PhotoUrl,
             patient.FirstName,
             patient.LastName,
@@ -128,6 +168,26 @@ public class PatientRepository : IPatientRepository
         """;
 
         await connection.ExecuteAsync(sql, new { Id = id, UpdatedAt = DateTime.UtcNow });
+    }
+
+    public async Task LinkToAccountAsync(Guid patientId, Guid accountId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        const string sql = """
+            UPDATE patients SET
+                is_linked_to_account = TRUE,
+                account_id = @AccountId,
+                updated_at = @UpdatedAt
+            WHERE id = @Id
+        """;
+
+        await connection.ExecuteAsync(sql, new
+        {
+            Id = patientId,
+            AccountId = accountId,
+            UpdatedAt = DateTime.UtcNow
+        });
     }
 
     public async Task DeleteAsync(Guid id)
@@ -163,6 +223,7 @@ public class PatientRepository : IPatientRepository
     private class PatientEntityDbModel
     {
         public Guid Id { get; set; }
+        public Guid? AccountId { get; set; }
         public string? PhotoUrl { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
@@ -178,6 +239,7 @@ public class PatientRepository : IPatientRepository
             return new PatientEntity
             {
                 Id = Id,
+                AccountId = AccountId,
                 PhotoUrl = PhotoUrl,
                 FirstName = FirstName,
                 LastName = LastName,

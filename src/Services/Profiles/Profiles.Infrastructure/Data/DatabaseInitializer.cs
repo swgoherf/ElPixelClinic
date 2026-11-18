@@ -48,6 +48,7 @@ public class DatabaseInitializer
 
             CREATE TABLE IF NOT EXISTS patients (
                 id UUID PRIMARY KEY,
+                account_id UUID NULL,
                 photo_url TEXT NULL,
                 first_name VARCHAR(100) NOT NULL,
                 last_name VARCHAR(100) NOT NULL,
@@ -59,6 +60,8 @@ public class DatabaseInitializer
                 updated_at TIMESTAMPTZ NOT NULL
             );
 
+            ALTER TABLE patients ADD COLUMN IF NOT EXISTS account_id UUID NULL;
+            CREATE INDEX IF NOT EXISTS ix_patients_account_id ON patients(account_id);
             CREATE INDEX IF NOT EXISTS ix_patients_is_linked ON patients(is_linked_to_account);
             CREATE INDEX IF NOT EXISTS ix_patients_names ON patients(last_name, first_name);
 

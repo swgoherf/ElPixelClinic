@@ -9,6 +9,7 @@ public class PatientEntity
     public string? MiddleName { get; set; }
     public string? PhoneNumber { get; set; }
     public DateOnly DateOfBirth { get; set; }
+    public Guid? AccountId { get; set; }
     public bool IsLinkedToAccount { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
