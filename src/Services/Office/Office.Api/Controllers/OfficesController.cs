@@ -39,6 +39,14 @@ public class OfficesController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id:guid}/status")]
+    public async Task<IActionResult> ChangeOfficeStatus(Guid id, [FromBody] ChangeOfficeStatusDto dto)
+    {
+        await _officeService.ChangeStatusAsync(id, dto.IsActive);
+
+        return NoContent();
+    }
+
     [HttpPost]
     public async Task<ActionResult<OfficeResponseDto>> CreateOffice(CreateOfficeDto dto)
     {

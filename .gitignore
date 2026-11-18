@@ -55,3 +55,6 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+coverage.json
+coverage.*.json
+coverage.cobertura.xml
